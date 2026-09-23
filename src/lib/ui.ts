@@ -5,7 +5,8 @@ import type { InstallPromptEvent } from "@/components/ServiceWorker";
 
 export type LeftView = "files" | "search";
 export type PaletteMode = "commands" | "notes" | null;
-export type SheetKind = "menu" | "tabs" | "note" | null;
+export type SheetKind = "menu" | "tabs" | null;
+export type RightTab = "backlinks" | "outgoing" | "cards" | "outline" | "graph";
 
 export interface UIState {
   leftView: LeftView;
@@ -24,6 +25,7 @@ export interface UIState {
   /** True while the note editor has focus (mobile shows the editing toolbar). */
   editorFocused: boolean;
   installPrompt: InstallPromptEvent | null;
+  rightTab: RightTab;
 }
 
 const INITIAL: UIState = {
@@ -38,6 +40,7 @@ const INITIAL: UIState = {
   sheet: null,
   editorFocused: false,
   installPrompt: null,
+  rightTab: "backlinks",
 };
 
 let ui = INITIAL;

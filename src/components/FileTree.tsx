@@ -3,8 +3,8 @@
 import { useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  BookOpen, ChevronRight, FilePlus2, FileText, Folder, FolderInput, FolderOpen, FolderPlus, ChevronsDownUp, PanelTop,
-  Pencil, Trash2, Check, X,
+  BookOpen, ChevronRight, FilePlus2, Folder, FolderInput, FolderPlus, ChevronsDownUp, PanelTop, Pencil, SquarePen,
+  Trash2,
 } from "lucide-react";
 import Sheet from "./Sheet";
 import { Note, folderOf, titleOf } from "@/lib/vault";
@@ -12,7 +12,7 @@ import { allFolders, cardsOf, toast, useVault, vault } from "@/lib/store";
 import { setUI } from "@/lib/ui";
 
 type Editing = { kind: "note" | "folder"; key: string } | null;
-type Ctx = { kind: "note" | "folder"; key: string; step?: "move" | "confirm" } | null;
+type Ctx = { kind: "note" | "folder"; key: string; step?: "move" | "confirm"; at?: { x: number; y: number } } | null;
 
 function InlineInput({ initial, onDone }: { initial: string; onDone: (value: string | null) => void }) {
   const [value, setValue] = useState(initial);
@@ -33,27 +33,12 @@ function InlineInput({ initial, onDone }: { initial: string; onDone: (value: str
   );
 }
 
-function ConfirmDelete({ onYes, onNo }: { onYes: () => void; onNo: () => void }) {
-  return (
-    <span className="tree-confirm" onClick={(e) => e.stopPropagation()}>
-      Delete?
-      <button className="icon-btn is-danger" onClick={onYes} aria-label="Confirm delete">
-        <Check size={13} />
-      </button>
-      <button className="icon-btn" onClick={onNo} aria-label="Cancel">
-        <X size={13} />
-      </button>
-    </span>
-  );
-}
-
 export default function FileTree() {
   const state = useVault();
   const { notes, workspace } = state;
   const router = useRouter();
   const pathname = usePathname();
   const [editing, setEditing] = useState<Editing>(null);
-  const [confirming, setConfirming] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [ctx, setCtx] = useState<Ctx>(null);
   const press = useRef<{ timer?: ReturnType<typeof setTimeout>; fired: boolean }>({ fired: false });
@@ -76,7 +61,7 @@ export default function FileTree() {
     },
     onContextMenu: (e: React.MouseEvent) => {
       e.preventDefault();
-      setCtx({ kind, key });
+      setCtx({ kind, key, at: { x: e.clientX, y: e.clientY } });
     },
   });
 
@@ -136,7 +121,7 @@ export default function FileTree() {
       <li key={n.id}>
         <div
           className={`tree-row is-note${workspace.active === n.id ? " is-active" : ""}`}
-          style={{ paddingLeft: 10 + depth * 14 }}
+          style={{ paddingLeft: 23 + depth * 14 }}
           draggable={!isEditing}
           onDragStart={(e) => {
             e.dataTransfer.setData("text/graphite-note", n.id);
@@ -147,7 +132,6 @@ export default function FileTree() {
           title={n.path}
           {...pressProps("note", n.id)}
         >
-          <FileText size={14} className="tree-icon" />
           {isEditing ? (
             <InlineInput
               initial={titleOf(n.path)}
@@ -161,29 +145,11 @@ export default function FileTree() {
           ) : (
             <span className="tree-label">{titleOf(n.path)}</span>
           )}
-          {confirming === n.id ? (
-            <ConfirmDelete
-              onYes={() => {
-                setConfirming(null);
-                vault.deleteNote(n.id);
-              }}
-              onNo={() => setConfirming(null)}
-            />
-          ) : (
-            !isEditing && (
-              <>
-                {cards ? <span className="tree-badge" title={`${cards} flashcards`}>{cards}</span> : null}
-                <span className="tree-actions">
-                  <button className="icon-btn" aria-label="Rename" onClick={(e) => { e.stopPropagation(); setEditing({ kind: "note", key: n.id }); }}>
-                    <Pencil size={12} />
-                  </button>
-                  <button className="icon-btn" aria-label="Delete" onClick={(e) => { e.stopPropagation(); setConfirming(n.id); }}>
-                    <Trash2 size={12} />
-                  </button>
-                </span>
-              </>
-            )
-          )}
+          {!isEditing && cards ? (
+            <span className="tree-badge" title={`${cards} flashcards`}>
+              {cards}
+            </span>
+          ) : null}
         </div>
       </li>
     );
@@ -196,9 +162,8 @@ export default function FileTree() {
     const childNotes = Object.values(notes)
       .filter((n) => folderOf(n.path) === path)
       .sort((a, b) => titleOf(a.path).localeCompare(titleOf(b.path)));
-    const key = `folder:${path}`;
     return (
-      <li key={key}>
+      <li key={`folder:${path}`}>
         <div
           className={`tree-row is-folder${dropTarget === path ? " is-drop" : ""}${activeFolder === path && !open ? " has-active" : ""}`}
           style={{ paddingLeft: 6 + depth * 14 }}
@@ -208,7 +173,6 @@ export default function FileTree() {
           {...pressProps("folder", path)}
         >
           <ChevronRight size={13} className={`tree-chevron${open ? " is-open" : ""}`} />
-          {open ? <FolderOpen size={14} className="tree-icon" /> : <Folder size={14} className="tree-icon" />}
           {isEditing ? (
             <InlineInput
               initial={titleOf(path)}
@@ -222,29 +186,9 @@ export default function FileTree() {
           ) : (
             <span className="tree-label">{titleOf(path)}</span>
           )}
-          {confirming === key ? (
-            <ConfirmDelete
-              onYes={() => {
-                setConfirming(null);
-                vault.deleteFolder(path);
-              }}
-              onNo={() => setConfirming(null)}
-            />
-          ) : (
-            !isEditing && (
-              <span className="tree-actions">
-                <button className="icon-btn" aria-label="New note in folder" onClick={(e) => { e.stopPropagation(); vault.toggleFolder(path, true); newNote(path); }}>
-                  <FilePlus2 size={12} />
-                </button>
-                <button className="icon-btn" aria-label="Delete folder" onClick={(e) => { e.stopPropagation(); setConfirming(key); }}>
-                  <Trash2 size={12} />
-                </button>
-              </span>
-            )
-          )}
         </div>
         {open && (childFolders.length > 0 || childNotes.length > 0) && (
-          <ul className="tree-children">
+          <ul className="tree-children" style={{ "--guide": `${13 + depth * 14}px` } as React.CSSProperties}>
             {childFolders.map((f) => renderFolder(f, depth + 1))}
             {childNotes.map((n) => renderNote(n, depth + 1))}
           </ul>
@@ -297,7 +241,7 @@ export default function FileTree() {
               ? "Delete this note?"
               : `Delete this folder${ctxInside ? ` and its ${ctxInside} ${ctxInside === 1 ? "note" : "notes"}` : ""}?`}
           </span>
-          <button className="btn btn-ghost" onClick={closeCtx}>Cancel</button>
+          <button className="btn" onClick={closeCtx}>Cancel</button>
           <button
             className="btn btn-danger"
             onClick={() => {
@@ -363,18 +307,19 @@ export default function FileTree() {
   return (
     <div className="file-tree">
       <div className="panel-toolbar">
-        <button className="icon-btn" title="New note" onClick={() => newNote(activeFolder)}>
-          <FilePlus2 size={16} />
+        <button className="icon-btn" title="New note" aria-label="New note" onClick={() => newNote(activeFolder)}>
+          <SquarePen size={17} />
         </button>
-        <button className="icon-btn" title="New folder" onClick={() => newFolder("")}>
-          <FolderPlus size={16} />
+        <button className="icon-btn" title="New folder" aria-label="New folder" onClick={() => newFolder("")}>
+          <FolderPlus size={17} />
         </button>
         <button
           className="icon-btn"
           title="Collapse all"
+          aria-label="Collapse all"
           onClick={() => folders.forEach((f) => vault.toggleFolder(f, false))}
         >
-          <ChevronsDownUp size={16} />
+          <ChevronsDownUp size={17} />
         </button>
       </div>
       <ul
@@ -394,6 +339,7 @@ export default function FileTree() {
       </ul>
       <Sheet
         open={!!ctx}
+        anchor={ctx?.at ?? null}
         onClose={closeCtx}
         title={ctx ? (ctx.step === "move" ? "Move to…" : titleOf(ctxNote ? ctxNote.path : ctx.key)) : undefined}
       >

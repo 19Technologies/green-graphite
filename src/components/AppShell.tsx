@@ -4,7 +4,7 @@ import { useEffect, useMemo, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  CalendarDays, Command, Files, Layers, Network, NotebookPen, Search, Settings, X,
+  CalendarDays, ChevronsUpDown, Dices, FileSearch, Folder, GitFork, Layers, PanelLeft, Search, Settings, SquareTerminal, X,
 } from "lucide-react";
 import { cardsOf, dismissToast, getVault, indexOf, useToasts, useVault, vault } from "@/lib/store";
 import { getUI, openSearch, setUI, useUI } from "@/lib/ui";
@@ -14,6 +14,8 @@ import CommandPalette from "./CommandPalette";
 import MobileNav from "./MobileNav";
 import EditToolbar from "./EditToolbar";
 import Logo from "./Logo";
+import TabBar from "./TabBar";
+import RightPanel from "./RightPanel";
 
 function Toasts() {
   const toasts = useToasts();
@@ -45,23 +47,22 @@ function Toasts() {
 function StatusBar() {
   const { notes, workspace, ready } = useVault();
   const pathname = usePathname();
-  const note = workspace.active ? notes[workspace.active] : undefined;
+  const note = pathname === "/" && workspace.active ? notes[workspace.active] : undefined;
   const stats = useMemo(() => {
     const cards = cardsOf(notes);
     if (!note) return { cards: cards.length };
-    const words = note.content.trim() ? note.content.trim().split(/\s+/).length : 0;
     return {
       cards: cards.length,
       noteCards: cards.filter((c) => c.noteId === note.id).length,
       backlinks: indexOf(notes).backlinks.get(note.id)?.length ?? 0,
-      words,
+      words: note.content.trim() ? note.content.trim().split(/\s+/).length : 0,
       chars: note.content.length,
     };
   }, [notes, note]);
-  if (!ready) return <footer className="statusbar" />;
+  if (!ready) return null;
   return (
     <footer className="statusbar">
-      {pathname === "/" && note && (
+      {note && (
         <>
           <span>{stats.backlinks} backlinks</span>
           <span>{stats.noteCards} cards</span>
@@ -69,9 +70,8 @@ function StatusBar() {
           <span>{stats.chars} characters</span>
         </>
       )}
-      <Link href="/flashcards" className="status-cards">
-        <span className="pulse-dot" />
-        {stats.cards} cards in vault
+      <Link href="/flashcards" className="status-item">
+        <Layers size={12} /> {stats.cards}
       </Link>
     </footer>
   );
@@ -174,11 +174,12 @@ function useDrawerSwipe(pathname: string) {
 }
 
 export default function AppShell({ children }: { children: ReactNode }) {
-  const { workspace, ready } = useVault();
+  const { workspace, notes, ready } = useVault();
   const { leftView, mobileLeft, mobileRight, editorFocused } = useUI();
   const pathname = usePathname();
   const router = useRouter();
   useDrawerSwipe(pathname);
+  const note = pathname === "/" && workspace.active ? notes[workspace.active] : undefined;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -215,81 +216,92 @@ export default function AppShell({ children }: { children: ReactNode }) {
     setUI({ mobileLeft: false, mobileRight: false, sheet: null });
   }, [pathname]);
 
-  const nav = [
-    { href: "/", label: "Notes", icon: <NotebookPen size={19} /> },
-    { href: "/graph", label: "Graph view", icon: <Network size={19} /> },
-    { href: "/flashcards", label: "Flashcards", icon: <Layers size={19} /> },
+  const ribbon: Array<{ label: string; icon: ReactNode; run: () => void; active?: boolean }> = [
+    { label: "Open quick switcher", icon: <FileSearch size={18} />, run: () => setUI({ palette: "notes" }) },
+    { label: "Open graph view", icon: <GitFork size={18} />, run: () => router.push("/graph"), active: pathname === "/graph" },
+    { label: "Flashcards", icon: <Layers size={18} />, run: () => router.push("/flashcards"), active: pathname.startsWith("/flashcards") },
+    { label: "Open today's daily note", icon: <CalendarDays size={18} />, run: () => { vault.openDaily(); router.push("/"); } },
+    { label: "Open random note", icon: <Dices size={18} />, run: () => { vault.openRandom(); router.push("/"); } },
+    { label: "Open command palette", icon: <SquareTerminal size={18} />, run: () => setUI({ palette: "commands" }) },
   ];
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
-  const showLeft = (v: "files" | "search") => {
-    if (workspace.leftOpen && leftView === v) vault.setPanel("leftOpen", false);
-    else {
-      setUI({ leftView: v });
-      vault.setPanel("leftOpen", true);
-    }
-  };
 
   return (
     <div
       className="shell"
       data-left={workspace.leftOpen ? "open" : "closed"}
+      data-right={note && workspace.rightOpen ? "open" : "closed"}
       data-mobile-left={mobileLeft ? "open" : "closed"}
       data-mobile-right={mobileRight ? "open" : "closed"}
       data-editing={editorFocused ? "true" : undefined}
     >
-      <nav className="ribbon" aria-label="Main">
-        <Link href="/" className="ribbon-logo" aria-label="Green Graphite home">
-          <Logo />
-        </Link>
-        <button className={`ribbon-btn only-desktop${workspace.leftOpen && leftView === "files" ? " is-on" : ""}`} title="Files" onClick={() => showLeft("files")}>
-          <Files size={19} />
+      <nav className="ribbon" aria-label="Ribbon">
+        <button
+          className="ribbon-btn"
+          aria-label="Toggle left sidebar"
+          title="Toggle left sidebar (⌘\)"
+          onClick={() => vault.setPanel("leftOpen")}
+        >
+          <PanelLeft size={18} />
         </button>
-        <button className={`ribbon-btn only-desktop${workspace.leftOpen && leftView === "search" ? " is-on" : ""}`} title="Search (⌘⇧F)" onClick={() => showLeft("search")}>
-          <Search size={19} />
-        </button>
-        <span className="ribbon-sep only-desktop" />
-        {nav.map((n) => (
-          <Link key={n.href} href={n.href} title={n.label} className={`ribbon-btn${isActive(n.href) ? " is-active" : ""}`}>
-            {n.icon}
-          </Link>
+        {ribbon.map((r) => (
+          <button key={r.label} className={`ribbon-btn${r.active ? " is-active" : ""}`} aria-label={r.label} title={r.label} onClick={r.run}>
+            {r.icon}
+          </button>
         ))}
-        <button className="ribbon-btn only-desktop" title="Today's daily note" onClick={() => { vault.openDaily(); router.push("/"); }}>
-          <CalendarDays size={19} />
-        </button>
-        <span className="ribbon-spacer" />
-        <button className="ribbon-btn only-desktop" title="Command palette (⌘K)" onClick={() => setUI({ palette: "commands" })}>
-          <Command size={19} />
-        </button>
-        <Link href="/settings" title="Settings" className={`ribbon-btn${isActive("/settings") ? " is-active" : ""}`}>
-          <Settings size={19} />
-        </Link>
       </nav>
 
       <aside className="sidebar-left" aria-label="Files and search">
         <div className="sidebar-head">
-          <div className="segmented">
-            <button className={leftView === "files" ? "is-on" : ""} onClick={() => setUI({ leftView: "files" })}>
-              <Files size={14} /> Files
+          <div className="side-tabs" role="tablist">
+            <button
+              role="tab"
+              aria-selected={leftView === "files"}
+              className={`side-tab${leftView === "files" ? " is-active" : ""}`}
+              aria-label="Files"
+              title="Files"
+              onClick={() => setUI({ leftView: "files" })}
+            >
+              <Folder size={17} />
             </button>
-            <button className={leftView === "search" ? "is-on" : ""} onClick={() => setUI({ leftView: "search" })}>
-              <Search size={14} /> Search
+            <button
+              role="tab"
+              aria-selected={leftView === "search"}
+              className={`side-tab${leftView === "search" ? " is-active" : ""}`}
+              aria-label="Search"
+              title="Search (⌘⇧F)"
+              onClick={() => setUI({ leftView: "search" })}
+            >
+              <Search size={17} />
             </button>
           </div>
           <button className="icon-btn only-mobile" aria-label="Close" onClick={() => setUI({ mobileLeft: false })}>
-            <X size={16} />
+            <X size={18} />
           </button>
         </div>
         <div className="sidebar-body">{ready && (leftView === "files" ? <FileTree /> : <SearchPanel />)}</div>
-        <div className="vault-name">
-          <span className="vault-dot" /> Green Graphite
-          <Link href="/settings" className="icon-btn only-mobile vault-settings" aria-label="Settings">
+        <div className="vault-bar">
+          <button className="vault-switcher" onClick={() => setUI({ palette: "notes" })} title="Green Graphite vault">
+            <span>Green Graphite</span>
+            <ChevronsUpDown size={14} />
+          </button>
+          <Link href="/settings" className="icon-btn" aria-label="Settings" title="Settings">
             <Settings size={16} />
           </Link>
         </div>
       </aside>
       <div className="drawer-scrim" onClick={() => setUI({ mobileLeft: false, mobileRight: false })} />
 
-      <main className="main">{ready ? children : <div className="boot"><Logo size={28} /></div>}</main>
+      <main className="main">
+        <TabBar />
+        <div className="view">{ready ? children : <div className="boot"><Logo size={28} /></div>}</div>
+      </main>
+
+      {pathname === "/" && (
+        <aside className="right-panel" aria-label="Links, cards and outline">
+          {ready && note && <RightPanel note={note} />}
+        </aside>
+      )}
+
       <StatusBar />
       <MobileNav />
       <EditToolbar />
@@ -298,4 +310,3 @@ export default function AppShell({ children }: { children: ReactNode }) {
     </div>
   );
 }
-

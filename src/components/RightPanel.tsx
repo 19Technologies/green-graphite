@@ -1,158 +1,204 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, BookOpen, ChevronRight, FileQuestion, Link2, ListTree, Network, Layers } from "lucide-react";
-import { Note, titleOf } from "@/lib/vault";
+import { ArrowUpRight, ChevronDown, GitFork, Layers, Link2, ListTree } from "lucide-react";
+import { Note, folderOf, titleOf } from "@/lib/vault";
 import { extractHeadings, stripInline } from "@/lib/links";
 import { buildGraph } from "@/lib/graph";
 import { cardsOf, indexOf, useVault, vault } from "@/lib/store";
-import { setUI } from "@/lib/ui";
+import { RightTab, setUI, useUI } from "@/lib/ui";
 import GraphCanvas from "./GraphCanvas";
 
-function Section({ title, icon, count, children, defaultOpen = true }: {
-  title: string;
-  icon: ReactNode;
-  count?: number;
-  children: ReactNode;
-  defaultOpen?: boolean;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <section className="rp-section">
-      <button className="rp-head" onClick={() => setOpen(!open)} aria-expanded={open}>
-        <ChevronRight size={13} className={`tree-chevron${open ? " is-open" : ""}`} />
-        {icon}
-        <span>{title}</span>
-        {count !== undefined && <span className="tree-badge">{count}</span>}
-      </button>
-      {open && <div className="rp-body">{children}</div>}
-    </section>
-  );
-}
+const TABS: Array<{ id: RightTab; label: string; icon: React.ReactNode }> = [
+  { id: "backlinks", label: "Backlinks", icon: <Link2 size={17} /> },
+  { id: "outgoing", label: "Outgoing links", icon: <ArrowUpRight size={17} /> },
+  { id: "cards", label: "Flashcards", icon: <Layers size={17} /> },
+  { id: "outline", label: "Outline", icon: <ListTree size={17} /> },
+  { id: "graph", label: "Local graph", icon: <GitFork size={17} /> },
+];
 
 function Snippet({ text, target }: { text: string; target: string }) {
   const parts = stripInline(text).trim().split(/(\[\[[^\]]+\]\])/g);
   return (
-    <span className="rp-snippet">
+    <span className="search-match">
       {parts.map((p, i) => {
         if (!p.startsWith("[[")) return p;
         const inner = p.slice(2, -2);
         const label = inner.split("|").pop()!;
         const hit = inner.split(/[|#]/)[0].trim().toLowerCase();
-        return (
-          <b key={i} className={hit === target.toLowerCase() || hit.endsWith("/" + target.toLowerCase()) ? "is-hit" : ""}>
-            {label}
-          </b>
-        );
+        const isHit = hit === target.toLowerCase() || hit.endsWith("/" + target.toLowerCase());
+        return isHit ? <mark key={i}>{label}</mark> : <span key={i}>{label}</span>;
       })}
     </span>
   );
 }
 
-export default function RightPanel({ note }: { note: Note }) {
+function Backlinks({ note }: { note: Note }) {
   const { notes } = useVault();
-  const index = indexOf(notes);
-  const backlinks = index.backlinks.get(note.id) ?? [];
-  const outgoing = index.outgoing.get(note.id) ?? [];
-  const headings = useMemo(() => extractHeadings(note.content), [note.content]);
+  const [open, setOpen] = useState(true);
+  const backlinks = indexOf(notes).backlinks.get(note.id) ?? [];
+  return (
+    <>
+      <button className="pane-section-head" onClick={() => setOpen(!open)} aria-expanded={open}>
+        <ChevronDown size={14} className={`collapse-icon${open ? "" : " is-collapsed"}`} />
+        <span>Linked mentions</span>
+        <span className="pane-count">{backlinks.length}</span>
+      </button>
+      {open &&
+        (backlinks.length ? (
+          backlinks.map((b) => (
+            <div key={b.from.id} className="search-result">
+              <button className="search-result-file" onClick={(e) => vault.openNote(b.from.id, { newTab: e.metaKey || e.ctrlKey })}>
+                {titleOf(b.from.path)}
+              </button>
+              <button className="search-result-match" onClick={() => vault.openNote(b.from.id)}>
+                <Snippet text={b.snippet} target={titleOf(note.path)} />
+              </button>
+            </div>
+          ))
+        ) : (
+          <p className="pane-empty">No backlinks found.</p>
+        ))}
+    </>
+  );
+}
+
+function Outgoing({ note }: { note: Note }) {
+  const { notes } = useVault();
+  const outgoing = indexOf(notes).outgoing.get(note.id) ?? [];
+  const unique = outgoing.filter((r, i) => outgoing.findIndex((o) => o.target.toLowerCase() === r.target.toLowerCase()) === i);
+  const linked = unique.filter((r) => r.note);
+  const missing = unique.filter((r) => !r.note);
+  return (
+    <>
+      <div className="pane-section-head is-static">
+        <span>Links</span>
+        <span className="pane-count">{linked.length}</span>
+      </div>
+      {linked.map((r) => (
+        <button key={r.target} className="pane-row" onClick={() => vault.openNote(r.note!.id)}>
+          <span>{titleOf(r.note!.path)}</span>
+          {folderOf(r.note!.path) && <small>{folderOf(r.note!.path)}</small>}
+        </button>
+      ))}
+      {!linked.length && <p className="pane-empty">No outgoing links.</p>}
+      {missing.length > 0 && (
+        <>
+          <div className="pane-section-head is-static">
+            <span>Unresolved links</span>
+            <span className="pane-count">{missing.length}</span>
+          </div>
+          {missing.map((r) => (
+            <button key={r.target} className="pane-row is-unresolved" title="Create this note" onClick={() => vault.createFromLink(r.target, note.id)}>
+              <span>{r.target}</span>
+            </button>
+          ))}
+        </>
+      )}
+    </>
+  );
+}
+
+function Cards({ note }: { note: Note }) {
+  const { notes } = useVault();
   const cards = cardsOf(notes).filter((c) => c.noteId === note.id);
-  const graph = buildGraph(notes, index, { tags: false, orphans: true, ghosts: true, focus: note.id, depth: 1 });
+  if (!cards.length) {
+    return (
+      <p className="pane-empty">
+        No flashcards in this note. Write <code>front :: back</code> on any line to add one.
+      </p>
+    );
+  }
+  return (
+    <>
+      <div className="pane-section-head is-static">
+        <span>In this note</span>
+        <span className="pane-count">{cards.length}</span>
+      </div>
+      {cards.map((c) => (
+        <div key={c.id} className="pane-card">
+          <span>{c.front.replace(/==\[…\]==/g, "[…]").replace(/[*_=`]/g, "")}</span>
+          <small>{c.back.replace(/[*_=`]/g, "")}</small>
+        </div>
+      ))}
+      <Link href={`/flashcards/study?note=${note.id}`} className="btn btn-primary pane-button">
+        Study {cards.length} {cards.length === 1 ? "card" : "cards"}
+      </Link>
+    </>
+  );
+}
 
-  const uniqueOut = outgoing.filter((r, i) => outgoing.findIndex((o) => o.target.toLowerCase() === r.target.toLowerCase()) === i);
+function Outline({ note }: { note: Note }) {
+  const headings = useMemo(() => extractHeadings(note.content), [note.content]);
+  if (!headings.length) return <p className="pane-empty">No headings found.</p>;
+  return (
+    <div className="outline">
+      {headings.map((h) => (
+        <button
+          key={h.line}
+          className="pane-row outline-item"
+          style={{ paddingLeft: 10 + (h.level - 1) * 16 }}
+          onClick={() => {
+            vault.setMode("read");
+            setUI({ pendingHeading: h.slug, mobileRight: false });
+          }}
+        >
+          {h.text}
+        </button>
+      ))}
+    </div>
+  );
+}
 
+function LocalGraph({ note }: { note: Note }) {
+  const { notes } = useVault();
+  const graph = buildGraph(notes, indexOf(notes), { tags: false, orphans: true, ghosts: true, focus: note.id, depth: 1 });
+  return (
+    <div className="local-graph">
+      <GraphCanvas
+        compact
+        data={graph}
+        activeId={note.id}
+        onNodeClick={(n) => {
+          if (n.noteId) vault.openNote(n.noteId);
+          else if (n.kind === "ghost") vault.createFromLink(n.label, note.id);
+        }}
+      />
+    </div>
+  );
+}
+
+export default function RightPanel({ note }: { note: Note }) {
+  const { rightTab } = useUI();
+  const tab = TABS.find((t) => t.id === rightTab) ?? TABS[0];
   return (
     <div className="right-panel-inner">
-      <Section title="Local graph" icon={<Network size={13} />}>
-        <div className="local-graph">
-          <GraphCanvas
-            compact
-            data={graph}
-            activeId={note.id}
-            onNodeClick={(n) => {
-              if (n.noteId) vault.openNote(n.noteId);
-              else if (n.kind === "ghost") vault.createFromLink(n.label, note.id);
-            }}
-          />
-          <Link href="/graph" className="local-graph-open" title="Open full graph">
-            <ArrowUpRight size={13} />
-          </Link>
-        </div>
-      </Section>
-
-      <Section title="Linked mentions" icon={<Link2 size={13} />} count={backlinks.length}>
-        {backlinks.length ? (
-          backlinks.map((b) => (
-            <button key={b.from.id} className="rp-item" onClick={(e) => vault.openNote(b.from.id, { newTab: e.metaKey || e.ctrlKey })}>
-              <span className="rp-item-title">{titleOf(b.from.path)}</span>
-              <Snippet text={b.snippet} target={titleOf(note.path)} />
-            </button>
-          ))
-        ) : (
-          <p className="panel-empty">No notes link here yet.</p>
-        )}
-      </Section>
-
-      <Section title="Outgoing links" icon={<ArrowUpRight size={13} />} count={uniqueOut.length} defaultOpen={false}>
-        {uniqueOut.length ? (
-          uniqueOut.map((r) =>
-            r.note ? (
-              <button key={r.target} className="rp-link" onClick={() => vault.openNote(r.note!.id)}>
-                {titleOf(r.note.path)}
-              </button>
-            ) : (
-              <button key={r.target} className="rp-link is-unresolved" title="Create this note" onClick={() => vault.createFromLink(r.target, note.id)}>
-                <FileQuestion size={12} /> {r.target}
-              </button>
-            ),
-          )
-        ) : (
-          <p className="panel-empty">This note doesn&apos;t link anywhere.</p>
-        )}
-      </Section>
-
-      <Section title="Flashcards" icon={<Layers size={13} />} count={cards.length}>
-        {cards.length ? (
-          <>
-            <ul className="rp-cards">
-              {cards.slice(0, 6).map((c) => (
-                <li key={c.id}>
-                  <span className="rp-card-front">{c.front.replace(/==\[…\]==/g, "[…]").replace(/[*_=`]/g, "")}</span>
-                  <span className="rp-card-kind">{c.kind === "reversed" ? "⇄" : c.kind === "cloze" ? "cloze" : c.kind === "multiline" ? "?" : "→"}</span>
-                </li>
-              ))}
-            </ul>
-            {cards.length > 6 && <p className="panel-caption">+{cards.length - 6} more</p>}
-            <Link href={`/flashcards/study?note=${note.id}`} className="btn btn-primary btn-block">
-              <BookOpen size={14} /> Study {cards.length} {cards.length === 1 ? "card" : "cards"}
-            </Link>
-          </>
-        ) : (
-          <p className="panel-empty">
-            Write <code>front :: back</code> on any line to turn it into a card.
-          </p>
-        )}
-      </Section>
-
-      <Section title="Outline" icon={<ListTree size={13} />} count={headings.length} defaultOpen={false}>
-        {headings.length ? (
-          headings.map((h) => (
+      <div className="side-tabs-bar">
+        <div className="side-tabs" role="tablist">
+          {TABS.map((t) => (
             <button
-              key={h.line}
-              className="rp-outline"
-              style={{ paddingLeft: 8 + (h.level - 1) * 12 }}
-              onClick={() => {
-                vault.setMode("read");
-                setUI({ pendingHeading: h.slug });
-              }}
+              key={t.id}
+              role="tab"
+              aria-selected={t.id === tab.id}
+              aria-label={t.label}
+              title={t.label}
+              className={`side-tab${t.id === tab.id ? " is-active" : ""}`}
+              onClick={() => setUI({ rightTab: t.id })}
             >
-              {h.text}
+              {t.icon}
             </button>
-          ))
-        ) : (
-          <p className="panel-empty">No headings.</p>
-        )}
-      </Section>
+          ))}
+        </div>
+      </div>
+      <div className="pane-view">
+        <div className="pane-view-title">{tab.label}</div>
+        {tab.id === "backlinks" && <Backlinks note={note} />}
+        {tab.id === "outgoing" && <Outgoing note={note} />}
+        {tab.id === "cards" && <Cards note={note} />}
+        {tab.id === "outline" && <Outline note={note} />}
+        {tab.id === "graph" && <LocalGraph note={note} />}
+      </div>
     </div>
   );
 }

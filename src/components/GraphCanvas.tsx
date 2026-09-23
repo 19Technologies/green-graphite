@@ -55,12 +55,14 @@ export default function GraphCanvas({
     return id === h || !!data.neighbours.get(h)?.has(id);
   };
 
-  const radius = (n: GraphNode) => (compact ? 3 : 3.5) + Math.sqrt(n.degree) * (compact ? 1.1 : 1.6);
+  const radius = (n: GraphNode) => (compact ? 3 : 3.2) + Math.sqrt(n.degree) * (compact ? 1 : 1.4);
 
+  // Flat, Obsidian-like rendering: grey nodes, thin grey links, accent for the open note and on hover.
   const drawNode = (node: GraphNode, ctx: CanvasRenderingContext2D, scale: number) => {
-    const accent = cssVar("--accent", "#5CE65C");
-    const text = cssVar("--text", "#e6ede6");
-    const muted = cssVar("--text-faint", "#5d6a5d");
+    const accent = cssVar("--accent", "#5ce65c");
+    const nodeColor = cssVar("--graph-node", "#9a9a9a");
+    const faint = cssVar("--graph-node-unresolved", "#5a5a5a");
+    const text = cssVar("--text-normal", "#dadada");
     const x = node.x ?? 0;
     const y = node.y ?? 0;
     const r = radius(node);
@@ -71,55 +73,38 @@ export default function GraphCanvas({
     const dim = (!lit || !matches) && !isActive;
 
     ctx.save();
-    ctx.globalAlpha = dim ? 0.14 : 1;
+    ctx.globalAlpha = dim ? 0.2 : 1;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
-    if (node.kind === "note") {
-      const strong = isActive || hovered || (hover.current && lit) || (q && matches);
-      ctx.fillStyle = strong ? accent : withAlpha(text, 0.78);
-      if (strong) {
-        ctx.shadowColor = accent;
-        ctx.shadowBlur = isActive ? 22 : 14;
-      }
-      ctx.fill();
-      if (isActive) {
-        ctx.shadowBlur = 0;
-        ctx.lineWidth = 1.5 / scale;
-        ctx.strokeStyle = withAlpha(accent, 0.55);
-        ctx.beginPath();
-        ctx.arc(x, y, r + 4 / scale + 2, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-    } else {
-      ctx.lineWidth = 1.4 / scale + 0.4;
-      ctx.setLineDash(node.kind === "ghost" ? [2 / scale + 1, 2 / scale + 1] : []);
-      ctx.strokeStyle = node.kind === "tag" ? withAlpha(accent, hovered ? 1 : 0.6) : muted;
-      ctx.fillStyle = cssVar("--bg", "#0b0e0b");
-      ctx.fill();
-      ctx.stroke();
-    }
+    ctx.fillStyle =
+      hovered || isActive || (q && matches && node.kind === "note")
+        ? accent
+        : node.kind === "tag"
+          ? withAlpha(accent, 0.65)
+          : node.kind === "ghost"
+            ? faint
+            : nodeColor;
+    ctx.fill();
 
-    const showLabel = hovered || isActive || (hover.current && lit) || (q && matches) || scale > (compact ? 1.6 : 1.25);
+    const showLabel = hovered || (hover.current && lit) || (q && matches) || scale > (compact ? 1.4 : 1.1);
     if (showLabel && !dim) {
-      const fontSize = Math.max(11 / scale, 2.2);
-      ctx.font = `${hovered || isActive ? 600 : 450} ${fontSize}px ${cssVar("--font-ui", "system-ui")}`;
+      const fontSize = Math.max(12 / scale, 2);
+      ctx.font = `${hovered ? 600 : 400} ${fontSize}px ${cssVar("--font-ui", "system-ui")}, system-ui, sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = node.kind === "note" ? (hovered || isActive ? text : withAlpha(text, 0.72)) : withAlpha(accent, 0.8);
-      ctx.fillText(node.label, x, y + r + 3 / scale + 1);
+      ctx.fillStyle = withAlpha(text, hovered || isActive ? 1 : 0.8);
+      ctx.fillText(node.label, x, y + r + 2 / scale + 1);
     }
     ctx.restore();
   };
 
-  const linkColor = (link: { source?: unknown; target?: unknown; kind?: string }) => {
+  const linkColor = (link: { source?: unknown; target?: unknown }) => {
     const s = (link.source as GraphNode)?.id;
     const t = (link.target as GraphNode)?.id;
-    const accent = cssVar("--accent", "#5CE65C");
-    const line = cssVar("--graph-line", "#2a332a");
-    if (hover.current && (s === hover.current || t === hover.current)) return withAlpha(accent, 0.75);
-    if (hover.current) return withAlpha(line, 0.35);
-    return link.kind === "tag" ? withAlpha(accent, 0.14) : line;
+    const line = cssVar("--graph-line", "#4a4a4a");
+    if (hover.current && (s === hover.current || t === hover.current)) return cssVar("--accent", "#5ce65c");
+    if (hover.current) return withAlpha(line, 0.3);
+    return line;
   };
 
   return (
@@ -145,15 +130,8 @@ export default function GraphCanvas({
           linkWidth={(l) => {
             const s = ((l as { source: GraphNode }).source as GraphNode)?.id;
             const t = ((l as { target: GraphNode }).target as GraphNode)?.id;
-            return hover.current && (s === hover.current || t === hover.current) ? 1.6 : 0.8;
+            return hover.current && (s === hover.current || t === hover.current) ? 1.4 : 1;
           }}
-          linkDirectionalParticles={(l) => {
-            const s = ((l as { source: GraphNode }).source as GraphNode)?.id;
-            const t = ((l as { target: GraphNode }).target as GraphNode)?.id;
-            return hover.current && (s === hover.current || t === hover.current) ? 2 : 0;
-          }}
-          linkDirectionalParticleWidth={2}
-          linkDirectionalParticleColor={() => cssVar("--accent", "#5CE65C")}
           autoPauseRedraw={false}
           cooldownTicks={compact ? 80 : 160}
           warmupTicks={compact ? 30 : 0}

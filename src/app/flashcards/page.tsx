@@ -60,7 +60,7 @@ export default function FlashcardsPage() {
     <div className="page">
       <header className="page-header">
         <p className="eyebrow">Flashcards</p>
-        <h1>Your decks</h1>
+        <h1>Flashcards</h1>
         <p className="page-lede">
           {cards.length} cards pulled from {noteCount} {noteCount === 1 ? "note" : "notes"}. Edit a note and its cards update
           on their own.

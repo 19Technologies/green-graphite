@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, X } from "lucide-react";
+import { ChevronDown, Search, Settings2, X } from "lucide-react";
 import GraphCanvas from "@/components/GraphCanvas";
 import { buildGraph } from "@/lib/graph";
 import { indexOf, useVault, vault } from "@/lib/store";
@@ -13,6 +13,8 @@ export default function GraphPage() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [ghosts, setGhosts] = useState(true);
+  const [controls, setControls] = useState(true);
+  const [filters, setFilters] = useState(true);
   const index = indexOf(notes);
 
   const data = buildGraph(notes, index, {
@@ -43,55 +45,64 @@ export default function GraphPage() {
         }}
       />
 
-      <div className="graph-overlay">
-        <div className="graph-title">
-          <h1>Graph</h1>
-          <p>
-            {stats.notes} notes · {stats.links} links · {stats.tags} tags
-          </p>
-        </div>
-        <label className="search-box graph-search">
-          <Search size={14} />
-          <input value={query} placeholder="Highlight notes…" onChange={(e) => setQuery(e.target.value)} />
-          {query && (
-            <button className="icon-btn" aria-label="Clear" onClick={() => setQuery("")}>
-              <X size={13} />
-            </button>
-          )}
-        </label>
-        <div className="graph-toggles">
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={settings.showTagsInGraph}
-              onChange={(e) => vault.updateSettings({ showTagsInGraph: e.target.checked })}
-            />
-            <span className="switch-track" />
-            Tags
-          </label>
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={settings.showOrphansInGraph}
-              onChange={(e) => vault.updateSettings({ showOrphansInGraph: e.target.checked })}
-            />
-            <span className="switch-track" />
-            Orphans
-          </label>
-          <label className="switch">
-            <input type="checkbox" checked={ghosts} onChange={(e) => setGhosts(e.target.checked)} />
-            <span className="switch-track" />
-            Unresolved
-          </label>
-        </div>
-      </div>
-
-      <div className="graph-legend">
-        <span><i className="lg-note" /> note</span>
-        <span><i className="lg-active" /> open note</span>
-        <span><i className="lg-tag" /> tag</span>
-        <span><i className="lg-ghost" /> not created yet</span>
-        <span className="graph-hint">Scroll to zoom · drag to move · click to open</span>
+      <div className={`graph-controls${controls ? "" : " is-closed"}`}>
+        {controls ? (
+          <>
+            <div className="graph-controls-head">
+              <button className="graph-section-toggle" onClick={() => setFilters(!filters)} aria-expanded={filters}>
+                <ChevronDown size={14} className={`collapse-icon${filters ? "" : " is-collapsed"}`} />
+                Filters
+              </button>
+              <button className="icon-btn" aria-label="Close graph settings" onClick={() => setControls(false)}>
+                <X size={15} />
+              </button>
+            </div>
+            {filters && (
+              <div className="graph-section">
+                <label className="search-box">
+                  <Search size={14} />
+                  <input value={query} placeholder="Search files..." onChange={(e) => setQuery(e.target.value)} />
+                </label>
+                <label className="setting-row">
+                  <span>Tags</span>
+                  <span className="switch">
+                    <input
+                      type="checkbox"
+                      checked={settings.showTagsInGraph}
+                      onChange={(e) => vault.updateSettings({ showTagsInGraph: e.target.checked })}
+                    />
+                    <span className="switch-track" />
+                  </span>
+                </label>
+                <label className="setting-row">
+                  <span>Existing files only</span>
+                  <span className="switch">
+                    <input type="checkbox" checked={!ghosts} onChange={(e) => setGhosts(!e.target.checked)} />
+                    <span className="switch-track" />
+                  </span>
+                </label>
+                <label className="setting-row">
+                  <span>Orphans</span>
+                  <span className="switch">
+                    <input
+                      type="checkbox"
+                      checked={settings.showOrphansInGraph}
+                      onChange={(e) => vault.updateSettings({ showOrphansInGraph: e.target.checked })}
+                    />
+                    <span className="switch-track" />
+                  </span>
+                </label>
+              </div>
+            )}
+            <div className="graph-stats">
+              {stats.notes} notes · {stats.links} links · {stats.tags} tags
+            </div>
+          </>
+        ) : (
+          <button className="icon-btn" aria-label="Open graph settings" title="Open graph settings" onClick={() => setControls(true)}>
+            <Settings2 size={17} />
+          </button>
+        )}
       </div>
     </div>
   );

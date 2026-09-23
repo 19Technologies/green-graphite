@@ -3,8 +3,8 @@
 import { useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  ArrowLeft, ArrowRight, BookOpen, CalendarDays, Command, FolderPlus, Layers, Menu, Network, NotebookPen, Plus,
-  Search, Settings, Shuffle, X,
+  ArrowLeft, ArrowRight, BookOpen, CalendarDays, Dices, FileText, FolderPlus, GitFork, Layers, Menu, Plus, Search,
+  Settings, SquareTerminal, X,
 } from "lucide-react";
 import { folderOf, titleOf } from "@/lib/vault";
 import { plainLine } from "@/lib/links";
@@ -22,21 +22,21 @@ function MenuSheet() {
     fn();
   };
   const items = [
-    { label: "Notes", icon: <NotebookPen size={22} />, run: () => router.push("/") },
-    { label: "Graph view", icon: <Network size={22} />, run: () => router.push("/graph") },
-    { label: "Flashcards", icon: <Layers size={22} />, run: () => router.push("/flashcards") },
-    { label: `Study ${cards.length}`, icon: <BookOpen size={22} />, run: () => router.push("/flashcards/study") },
-    { label: "Daily note", icon: <CalendarDays size={22} />, run: () => { vault.openDaily(); router.push("/"); } },
-    { label: "Search", icon: <Search size={22} />, run: () => openSearch() },
-    { label: "Random note", icon: <Shuffle size={22} />, run: () => { vault.openRandom(); router.push("/"); } },
-    { label: "New folder", icon: <FolderPlus size={22} />, run: () => { vault.createFolder(); setUI({ mobileLeft: true, leftView: "files" }); } },
-    { label: "Commands", icon: <Command size={22} />, run: () => setUI({ palette: "commands" }) },
-    { label: "Settings", icon: <Settings size={22} />, run: () => router.push("/settings") },
+    { label: "Notes", icon: <FileText size={18} />, run: () => router.push("/") },
+    { label: "Graph view", icon: <GitFork size={18} />, run: () => router.push("/graph") },
+    { label: "Flashcards", icon: <Layers size={18} />, run: () => router.push("/flashcards") },
+    { label: `Study all ${cards.length} flashcards`, icon: <BookOpen size={18} />, run: () => router.push("/flashcards/study") },
+    { label: "Daily note", icon: <CalendarDays size={18} />, run: () => { vault.openDaily(); router.push("/"); } },
+    { label: "Search", icon: <Search size={18} />, run: () => openSearch() },
+    { label: "Random note", icon: <Dices size={18} />, run: () => { vault.openRandom(); router.push("/"); } },
+    { label: "New folder", icon: <FolderPlus size={18} />, run: () => { vault.createFolder(); setUI({ mobileLeft: true, leftView: "files" }); } },
+    { label: "Command palette", icon: <SquareTerminal size={18} />, run: () => setUI({ palette: "commands" }) },
+    { label: "Settings", icon: <Settings size={18} />, run: () => router.push("/settings") },
   ];
   return (
-    <div className="menu-grid">
+    <div className="sheet-list">
       {items.map((it) => (
-        <button key={it.label} className="menu-tile" onClick={go(it.run)}>
+        <button key={it.label} className="sheet-item" onClick={go(it.run)}>
           {it.icon}
           <span>{it.label}</span>
         </button>
@@ -142,7 +142,7 @@ export default function MobileNav() {
           <ArrowRight size={21} />
         </button>
         <button
-          className="mnav-btn mnav-new"
+          className="mnav-btn"
           aria-label="New note"
           onClick={() => {
             const folder = workspace.active && notes[workspace.active] ? folderOf(notes[workspace.active].path) : "";

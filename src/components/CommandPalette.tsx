@@ -4,7 +4,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   BookOpen, CalendarDays, Columns2, Download, Eye, FilePlus2, FileText, FolderPlus, Layers, Network,
-  PanelLeft, PanelRight, PenLine, Search, Settings, Shuffle, Trash2, CornerDownLeft, TextCursorInput,
+  PanelLeft, PanelRight, PenLine, Search, Settings, Shuffle, Trash2, TextCursorInput,
 } from "lucide-react";
 import { folderOf, titleOf } from "@/lib/vault";
 import { rank } from "@/lib/fuzzy";
@@ -110,11 +110,10 @@ function Palette({ mode }: { mode: "commands" | "notes" }) {
     <div className="palette-backdrop" onMouseDown={close}>
       <div className="palette" role="dialog" aria-label={mode === "notes" ? "Quick switcher" : "Command palette"} onMouseDown={(e) => e.stopPropagation()}>
         <div className="palette-input">
-          {mode === "notes" ? <FileText size={16} /> : <span className="palette-caret">›</span>}
           <input
             autoFocus
             value={query}
-            placeholder={mode === "notes" ? "Find or create a note…" : "Type a command…"}
+            placeholder={mode === "notes" ? "Find or create a note..." : "Select a command..."}
             onChange={(e) => {
               setQuery(e.target.value);
               setActive(0);
@@ -133,7 +132,6 @@ function Palette({ mode }: { mode: "commands" | "notes" }) {
               }
             }}
           />
-          <kbd>esc</kbd>
         </div>
         <ul className="palette-list" role="listbox">
           {mode === "commands" &&
@@ -185,9 +183,10 @@ function Palette({ mode }: { mode: "commands" | "notes" }) {
           {count === 0 && <li className="palette-empty">No matches</li>}
         </ul>
         <div className="palette-footer">
-          <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
-          <span><kbd><CornerDownLeft size={10} /></kbd> {mode === "notes" ? "open" : "run"}</span>
-          {mode === "notes" && <span><kbd>⌘</kbd><kbd><CornerDownLeft size={10} /></kbd> new tab</span>}
+          <span><b>↑↓</b> to navigate</span>
+          <span><b>↵</b> to {mode === "notes" ? "open" : "use"}</span>
+          {mode === "notes" && <span><b>⌘ ↵</b> to open in new tab</span>}
+          <span><b>esc</b> to dismiss</span>
         </div>
       </div>
     </div>

@@ -3,18 +3,25 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
-/** Mobile bottom sheet: slides up, drag the handle (or the header) down to dismiss. */
+export type Anchor = { x: number; y: number } | null;
+
+/**
+ * Obsidian-style menus. On phones: a bottom sheet you can drag down to dismiss.
+ * On desktop with an anchor: a dropdown menu at that point.
+ */
 export default function Sheet({
   open,
   title,
   onClose,
   children,
+  anchor = null,
   className = "",
 }: {
   open: boolean;
   title?: ReactNode;
   onClose: () => void;
   children: ReactNode;
+  anchor?: Anchor;
   className?: string;
 }) {
   const [dy, setDy] = useState(0);
@@ -28,6 +35,20 @@ export default function Sheet({
   }, [open, onClose]);
 
   if (!open || typeof document === "undefined") return null;
+
+  if (anchor && window.matchMedia("(min-width: 821px)").matches) {
+    const width = 240;
+    const left = Math.min(anchor.x, window.innerWidth - width - 8);
+    const top = Math.min(anchor.y, window.innerHeight - 320);
+    return createPortal(
+      <div className="menu-layer" onMouseDown={onClose} onContextMenu={(e) => { e.preventDefault(); onClose(); }}>
+        <div className={`menu ${className}`} role="menu" style={{ left, top, width }} onMouseDown={(e) => e.stopPropagation()}>
+          {children}
+        </div>
+      </div>,
+      document.body,
+    );
+  }
 
   const drag = {
     onTouchStart: (e: React.TouchEvent) => {

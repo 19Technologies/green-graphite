@@ -86,7 +86,7 @@ export default function SettingsPage() {
     <div className="page page-narrow">
       <header className="page-header">
         <p className="eyebrow">Settings</p>
-        <h1>Preferences</h1>
+        <h1>Settings</h1>
       </header>
 
       <InstallApp />

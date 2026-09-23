@@ -50,9 +50,14 @@ function splitInline(value: string): MdNode[] {
     }
     last = m.index! + m[0].length;
   }
-  if (!out.length) return [text(value)];
   if (last < value.length) out.push(text(value.slice(last)));
-  return out;
+  if (!out.length) out.push(text(value));
+  // Obsidian shows single line breaks as breaks ("strict line breaks" off).
+  return out.flatMap((n) =>
+    n.type === "text" && n.value!.includes("\n")
+      ? n.value!.split("\n").flatMap((part, i) => (i ? [{ type: "break" }, ...(part ? [text(part)] : [])] : part ? [text(part)] : []))
+      : [n],
+  );
 }
 
 function walkInline(node: MdNode) {
@@ -80,8 +85,11 @@ function toLines(children: MdNode[]): MdNode[][] {
 
 const plain = (nodes: MdNode[]) => nodes.map((n) => (n.type === "text" ? n.value : "\u0000")).join("");
 
+/** Rejoin lines. Next to a card line (a block) a plain newline is kept instead of a <br>. */
+const SOFT = (): MdNode => ({ type: "kbNewline", value: "\n" });
+const isCard = (l: MdNode[]) => l.length === 1 && l[0].type === "kbSpan";
 function joinLines(lines: MdNode[][]): MdNode[] {
-  return lines.flatMap((l, i) => (i ? [text("\n"), ...l] : l));
+  return lines.flatMap((l, i) => (i ? [isCard(l) || isCard(lines[i - 1]) ? SOFT() : text("\n"), ...l] : l));
 }
 
 function cardLine(line: MdNode[]): MdNode | null {

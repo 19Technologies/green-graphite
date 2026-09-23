@@ -1,17 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import AppShell from "@/components/AppShell";
 import ServiceWorker from "@/components/ServiceWorker";
 import "./globals.css";
 
 const ui = Geist({ subsets: ["latin", "latin-ext"], variable: "--font-ui" });
 const mono = Geist_Mono({ subsets: ["latin", "latin-ext"], variable: "--font-mono" });
-const serif = Instrument_Serif({
-  subsets: ["latin", "latin-ext"],
-  weight: "400",
-  style: ["normal", "italic"],
-  variable: "--font-serif",
-});
 
 export const metadata: Metadata = {
   title: "Green Graphite",
@@ -26,12 +20,12 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   interactiveWidget: "resizes-content",
-  themeColor: "#0b0e0b",
+  themeColor: "#1e1e1e",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${ui.variable} ${mono.variable} ${serif.variable}`}>
+    <html lang="en" className={`${ui.variable} ${mono.variable}`}>
       <body>
         <AppShell>{children}</AppShell>
         <ServiceWorker />
