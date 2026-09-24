@@ -1,11 +1,40 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Download, ClipboardCopy, Upload, RotateCcw, Smartphone, Share } from "lucide-react";
+import { Download, ClipboardCopy, Upload, RotateCcw, Smartphone, Share, Sun, Moon, MonitorSmartphone } from "lucide-react";
 import { download } from "@/components/CommandPalette";
 import { toast, useVault, vault } from "@/lib/store";
 import type { Settings } from "@/lib/vault";
 import { setUI, useUI } from "@/lib/ui";
+
+function Appearance() {
+  const { settings } = useVault();
+  const options = [
+    { id: "paper", label: "Paper", hint: "Warm and light", icon: <Sun size={18} /> },
+    { id: "graphite", label: "Graphite", hint: "Obsidian black", icon: <Moon size={18} /> },
+    { id: "system", label: "System", hint: "Follow device", icon: <MonitorSmartphone size={18} /> },
+  ] as const;
+  return (
+    <section className="card-panel">
+      <div className="card-panel-head"><h2>Appearance</h2></div>
+      <div className="seg seg-tall" role="radiogroup" aria-label="Theme">
+        {options.map((o) => (
+          <button
+            key={o.id}
+            role="radio"
+            aria-checked={settings.theme === o.id}
+            className={settings.theme === o.id ? "is-on" : ""}
+            onClick={() => vault.updateSettings({ theme: o.id })}
+          >
+            {o.icon}
+            <span>{o.label}</span>
+            <small>{o.hint}</small>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 function InstallApp() {
   const { installPrompt } = useUI();
@@ -49,7 +78,7 @@ function InstallApp() {
   );
 }
 
-function Toggle({ label, hint, field }: { label: string; hint: string; field: keyof Settings }) {
+function Toggle({ label, hint, field }: { label: string; hint: string; field: Exclude<keyof Settings, "theme"> }) {
   const { settings } = useVault();
   return (
     <label className="setting">
@@ -85,10 +114,11 @@ export default function SettingsPage() {
   return (
     <div className="page page-narrow">
       <header className="page-header">
-        <p className="eyebrow">Settings</p>
+        <p className="eyebrow"><span className="dot" /> Settings</p>
         <h1>Settings</h1>
       </header>
 
+      <Appearance />
       <InstallApp />
 
       <section className="card-panel">

@@ -4,10 +4,11 @@ import { useEffect, useMemo, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  CalendarDays, ChevronsUpDown, Dices, FileSearch, Folder, GitFork, Layers, PanelLeft, Search, Settings, SquareTerminal, X,
+  CalendarDays, ChevronsUpDown, Dices, FileSearch, Folder, GitFork, Layers, Moon, PanelLeft, Search, Settings, SquareTerminal, Sun, X,
 } from "lucide-react";
 import { cardsOf, dismissToast, getVault, indexOf, useToasts, useVault, vault } from "@/lib/store";
 import { getUI, openSearch, setUI, useUI } from "@/lib/ui";
+import { applyTheme } from "@/lib/theme";
 import FileTree from "./FileTree";
 import SearchPanel from "./SearchPanel";
 import CommandPalette from "./CommandPalette";
@@ -41,6 +42,23 @@ function Toasts() {
         </div>
       ))}
     </div>
+  );
+}
+
+function ThemeToggle({ className = "ribbon-btn ribbon-toggle" }: { className?: string }) {
+  const { settings } = useVault();
+  const dark =
+    settings.theme === "graphite" ||
+    (settings.theme === "system" && typeof window !== "undefined" && document.documentElement.dataset.theme === "graphite");
+  return (
+    <button
+      className={className}
+      aria-label={dark ? "Switch to Paper (light)" : "Switch to Graphite (dark)"}
+      title={dark ? "Paper theme" : "Graphite theme"}
+      onClick={() => vault.updateSettings({ theme: dark ? "paper" : "graphite" })}
+    >
+      {dark ? <Sun size={18} /> : <Moon size={18} />}
+    </button>
   );
 }
 
@@ -173,8 +191,22 @@ function useDrawerSwipe(pathname: string) {
   }, [pathname]);
 }
 
+/** Keep <html data-theme> in sync with the setting (and with the device when set to System). */
+function useTheme(choice: "paper" | "graphite" | "system", ready: boolean) {
+  useEffect(() => {
+    if (!ready) return;
+    applyTheme(choice);
+    if (choice !== "system") return;
+    const mq = matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => applyTheme("system");
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [choice, ready]);
+}
+
 export default function AppShell({ children }: { children: ReactNode }) {
-  const { workspace, notes, ready } = useVault();
+  const { workspace, notes, ready, settings } = useVault();
+  useTheme(settings.theme, ready);
   const { leftView, mobileLeft, mobileRight, editorFocused } = useUI();
   const pathname = usePathname();
   const router = useRouter();
@@ -250,6 +282,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
             </button>
           ))}
         </div>
+        <span className="ribbon-spacer" />
+        <ThemeToggle />
       </nav>
 
       <aside className="sidebar-left" aria-label="Files and search">

@@ -311,28 +311,45 @@ function MobileHeader({ note, mode }: { note?: Note; mode: ViewMode }) {
 
 function EmptyWorkspace() {
   const { notes } = useVault();
-  const recent = Object.values(notes).sort((a, b) => b.updated - a.updated).slice(0, 5);
+  const all = Object.values(notes);
+  const recent = [...all].sort((a, b) => b.updated - a.updated).slice(0, 5);
+  const firstRun = all.length === 0;
   return (
     <div className="empty-workspace">
+      <div className="hero-art" aria-hidden>
+        <span className="bubble b1">[[Hallo]]</span>
+        <span className="bubble b2">Hund :: dog</span>
+        <span className="bubble b3">#deutsch</span>
+        <span className="bubble b4">Ich ==bin== müde</span>
+        <span className="bubble b5">Tschüss!</span>
+      </div>
       <div className="empty-inner">
-        <div className="empty-title">No file is open</div>
-        <button className="empty-action" onClick={() => setUI({ pendingRename: vault.createNote() })}>
-          Create new note
-        </button>
-        <button className="empty-action" onClick={() => setUI({ palette: "notes" })}>
-          Go to file <kbd>⌘O</kbd>
-        </button>
-        <button className="empty-action" onClick={() => vault.openDaily()}>
-          Open today&apos;s daily note
-        </button>
-        {recent.length > 0 && (
+        <p className="eyebrow"><span className="dot" /> {firstRun ? "Your vault is ready" : "No note open"}</p>
+        <h1 className="hero-title">{firstRun ? "Start your first note." : "Pick up where you left off."}</h1>
+        <p className="hero-lede">
+          Link ideas with <b>[[double brackets]]</b> and write flashcards like <b>Hallo :: Hello</b> right inside your notes.
+        </p>
+        <div className="hero-actions">
+          <button className="btn btn-primary btn-lg" onClick={() => setUI({ pendingRename: vault.createNote() })}>
+            Create a note
+          </button>
+          <button className="btn btn-lg" onClick={() => vault.openDaily()}>
+            Today&apos;s daily note
+          </button>
+        </div>
+        {!firstRun && (
           <>
+            <button className="empty-action" onClick={() => setUI({ palette: "notes" })}>
+              Go to file <kbd>⌘O</kbd>
+            </button>
             <div className="empty-sub">Recent files</div>
-            {recent.map((n) => (
-              <button key={n.id} className="empty-action is-file" onClick={() => vault.openNote(n.id)}>
-                {n.path}
-              </button>
-            ))}
+            <div className="recent-chips">
+              {recent.map((n) => (
+                <button key={n.id} className="chip" onClick={() => vault.openNote(n.id)} title={n.path}>
+                  {titleOf(n.path)}
+                </button>
+              ))}
+            </div>
           </>
         )}
       </div>

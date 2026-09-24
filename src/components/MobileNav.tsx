@@ -3,8 +3,8 @@
 import { useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  ArrowLeft, ArrowRight, BookOpen, CalendarDays, Dices, FileText, FolderPlus, GitFork, Layers, Menu, Plus, Search,
-  Settings, SquareTerminal, X,
+  ArrowLeft, ArrowRight, BookOpen, CalendarDays, Dices, FileText, FolderPlus, GitFork, Layers, Menu, Moon, Plus, Search,
+  Settings, SquareTerminal, Sun, X,
 } from "lucide-react";
 import { folderOf, titleOf } from "@/lib/vault";
 import { plainLine } from "@/lib/links";
@@ -17,6 +17,8 @@ const closeSheet = () => setUI({ sheet: null });
 function MenuSheet() {
   const router = useRouter();
   const cards = useCards();
+  const { settings } = useVault();
+  const dark = settings.theme === "graphite";
   const go = (fn: () => void) => () => {
     closeSheet();
     fn();
@@ -31,6 +33,7 @@ function MenuSheet() {
     { label: "Random note", icon: <Dices size={18} />, run: () => { vault.openRandom(); router.push("/"); } },
     { label: "New folder", icon: <FolderPlus size={18} />, run: () => { vault.createFolder(); setUI({ mobileLeft: true, leftView: "files" }); } },
     { label: "Command palette", icon: <SquareTerminal size={18} />, run: () => setUI({ palette: "commands" }) },
+    { label: dark ? "Paper theme" : "Graphite theme", icon: dark ? <Sun size={18} /> : <Moon size={18} />, run: () => vault.updateSettings({ theme: dark ? "paper" : "graphite" }) },
     { label: "Settings", icon: <Settings size={18} />, run: () => router.push("/settings") },
   ];
   return (

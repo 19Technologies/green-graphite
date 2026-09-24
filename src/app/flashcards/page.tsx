@@ -59,7 +59,7 @@ export default function FlashcardsPage() {
   return (
     <div className="page">
       <header className="page-header">
-        <p className="eyebrow">Flashcards</p>
+        <p className="eyebrow"><span className="dot" /> Study</p>
         <h1>Flashcards</h1>
         <p className="page-lede">
           {cards.length} cards pulled from {noteCount} {noteCount === 1 ? "note" : "notes"}. Edit a note and its cards update
@@ -68,22 +68,22 @@ export default function FlashcardsPage() {
       </header>
 
       <div className="stat-row">
-        <div className="stat">
+        <div className="stat tint-sun">
           <Layers size={16} />
           <b>{cards.length}</b>
           <span>cards</span>
         </div>
-        <div className="stat">
+        <div className="stat tint-sky">
           <CalendarCheck size={16} />
           <b>{today ? activity[today] ?? 0 : 0}</b>
           <span>studied today</span>
         </div>
-        <div className="stat">
+        <div className="stat tint-peach">
           <Flame size={16} />
           <b>{today ? streak(activity, parseDay(today)) : 0}</b>
           <span>day streak</span>
         </div>
-        <div className="stat">
+        <div className="stat tint-lilac">
           <FileText size={16} />
           <b>{days}</b>
           <span>days studied</span>

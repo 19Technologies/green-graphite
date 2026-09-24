@@ -114,6 +114,12 @@ function Session({ cards: initial, title, shuffle, startWithBack }: {
   if (done) {
     return (
       <div className="study-done">
+        <div className="hero-art done-art" aria-hidden>
+          <span className="bubble b1">Super!</span>
+          <span className="bubble b2">Toll gemacht</span>
+          <span className="bubble b3">Weiter so!</span>
+          <span className="bubble b4">Prima!</span>
+        </div>
         <div className="done-badge">
           <Check size={34} strokeWidth={2.5} />
         </div>

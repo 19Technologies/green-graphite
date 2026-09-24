@@ -10,8 +10,10 @@ export interface Note {
 }
 
 export type ViewMode = "read" | "edit" | "split";
+export type Theme = "paper" | "graphite" | "system";
 
 export interface Settings {
+  theme: Theme;
   shuffle: boolean;
   startWithBack: boolean;
   blurAnswersInNotes: boolean;
@@ -46,6 +48,7 @@ export const STORAGE_KEY = "green-graphite-vault";
 const OLDER_KEY = "kurzbite-vault-v2";
 
 export const DEFAULT_SETTINGS: Settings = {
+  theme: "paper",
   shuffle: false,
   startWithBack: false,
   blurAnswersInNotes: true,

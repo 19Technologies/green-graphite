@@ -116,13 +116,22 @@ function WikiLink({ target, children }: { target: string; children: ReactNode })
   );
 }
 
+/** Tutora pastel tint for a tag, stable per tag name. Mint is left out: green is for links only. */
+const TINTS = ["sun", "sky", "lilac", "peach"] as const;
+export function tintFor(tag: string) {
+  let h = 7;
+  for (const ch of tag.toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return TINTS[h % TINTS.length];
+}
+
 function TagLink({ tag, children }: { tag: string; children: ReactNode }) {
   const { interactive } = useContext(MarkdownCtx);
-  if (!interactive) return <span className="tag">{children}</span>;
+  if (!interactive) return <span className="tag" data-tint={tintFor(tag)}>{children}</span>;
   return (
     <a
       href="#"
       className="tag"
+      data-tint={tintFor(tag)}
       onClick={(e) => {
         e.preventDefault();
         openSearch(`#${tag}`);
