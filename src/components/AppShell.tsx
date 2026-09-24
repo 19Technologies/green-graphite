@@ -236,18 +236,20 @@ export default function AppShell({ children }: { children: ReactNode }) {
     >
       <nav className="ribbon" aria-label="Ribbon">
         <button
-          className="ribbon-btn"
+          className="ribbon-btn ribbon-toggle"
           aria-label="Toggle left sidebar"
           title="Toggle left sidebar (⌘\)"
           onClick={() => vault.setPanel("leftOpen")}
         >
           <PanelLeft size={18} />
         </button>
-        {ribbon.map((r) => (
-          <button key={r.label} className={`ribbon-btn${r.active ? " is-active" : ""}`} aria-label={r.label} title={r.label} onClick={r.run}>
-            {r.icon}
-          </button>
-        ))}
+        <div className="ribbon-group">
+          {ribbon.map((r) => (
+            <button key={r.label} className={`ribbon-btn${r.active ? " is-active" : ""}`} aria-label={r.label} title={r.label} onClick={r.run}>
+              {r.icon}
+            </button>
+          ))}
+        </div>
       </nav>
 
       <aside className="sidebar-left" aria-label="Files and search">

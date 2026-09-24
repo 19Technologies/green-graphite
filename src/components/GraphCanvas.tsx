@@ -57,9 +57,10 @@ export default function GraphCanvas({
 
   const radius = (n: GraphNode) => (compact ? 3 : 3.2) + Math.sqrt(n.degree) * (compact ? 1 : 1.4);
 
-  // Flat, Obsidian-like rendering: grey nodes, thin grey links, accent for the open note and on hover.
+  // Flat, Obsidian-like rendering: grey nodes and links; the open note is white; hovered links turn green.
   const drawNode = (node: GraphNode, ctx: CanvasRenderingContext2D, scale: number) => {
-    const accent = cssVar("--accent", "#5ce65c");
+    const focused = cssVar("--graph-node-focused", "#f4f4f5");
+    const tagColor = cssVar("--graph-node-tag", "#6f6f78");
     const nodeColor = cssVar("--graph-node", "#9a9a9a");
     const faint = cssVar("--graph-node-unresolved", "#5a5a5a");
     const text = cssVar("--text-normal", "#dadada");
@@ -78,9 +79,9 @@ export default function GraphCanvas({
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fillStyle =
       hovered || isActive || (q && matches && node.kind === "note")
-        ? accent
+        ? focused
         : node.kind === "tag"
-          ? withAlpha(accent, 0.65)
+          ? tagColor
           : node.kind === "ghost"
             ? faint
             : nodeColor;
@@ -102,7 +103,8 @@ export default function GraphCanvas({
     const s = (link.source as GraphNode)?.id;
     const t = (link.target as GraphNode)?.id;
     const line = cssVar("--graph-line", "#4a4a4a");
-    if (hover.current && (s === hover.current || t === hover.current)) return cssVar("--accent", "#5ce65c");
+    // Links are the only thing drawn in green.
+    if (hover.current && (s === hover.current || t === hover.current)) return cssVar("--link", "#5ce65c");
     if (hover.current) return withAlpha(line, 0.3);
     return line;
   };

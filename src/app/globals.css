@@ -1,39 +1,56 @@
 /* ==========================================================================
    Green Graphite: an Obsidian fork. Values follow Obsidian's default dark
-   theme; the only colour is the #5CE65C accent. Flat surfaces, no glows.
+   theme. Green (#5CE65C) appears only on links; icon groups are liquid-glass pills.
    ========================================================================== */
 :root {
-  --background-primary: #1e1e1e;
-  --background-primary-alt: #242424;
-  --background-secondary: #262626;
-  --background-secondary-alt: #2b2b2b;
-  --background-modifier-hover: rgba(255, 255, 255, 0.075);
-  --background-modifier-active: rgba(255, 255, 255, 0.1);
-  --background-modifier-border: #363636;
-  --background-modifier-border-hover: #3f3f3f;
-  --background-modifier-border-focus: #555555;
-  --background-modifier-form-field: #2a2a2a;
-  --background-modifier-cover: rgba(10, 10, 10, 0.5);
-  --interactive-normal: #363636;
-  --interactive-hover: #3f3f3f;
+  /* Obsidian black, with sidebars one step lighter in the same cool tone */
+  --background-primary: #1b1b1e;
+  --background-primary-alt: #212125;
+  --background-secondary: #232327;
+  --background-secondary-alt: #29292e;
+  --background-modifier-hover: rgba(255, 255, 255, 0.07);
+  --background-modifier-active: rgba(255, 255, 255, 0.11);
+  --background-modifier-border: #313136;
+  --background-modifier-border-hover: #3a3a40;
+  --background-modifier-border-focus: #4a4a52;
+  --background-modifier-form-field: #26262b;
+  --background-modifier-cover: rgba(8, 8, 10, 0.5);
+  --interactive-normal: #313136;
+  --interactive-hover: #3a3a40;
 
-  --text-normal: #dadada;
-  --text-muted: #bababa;
-  --text-faint: #666666;
+  --text-normal: #dcdcdf;
+  --text-muted: #b5b5ba;
+  --text-faint: #6b6b72;
   --text-error: #fb464c;
   --text-highlight-bg: rgba(255, 208, 0, 0.4);
 
-  --accent: #5ce65c;
-  --accent-hover: #74ea74;
-  --text-accent: #5ce65c;
-  --text-on-accent: #1a1a1a;
-  --accent-a10: rgba(92, 230, 92, 0.1);
-  --accent-a15: rgba(92, 230, 92, 0.15);
-  --accent-a30: rgba(92, 230, 92, 0.3);
+  /* Green is reserved for links. Everything else interactive is neutral. */
+  --link: #5ce65c;
+  --link-hover: #7cec7c;
+  --link-underline: rgba(92, 230, 92, 0.35);
+  --accent: #e4e4e7;
+  --accent-hover: #f4f4f5;
+  --text-accent: var(--text-normal);
+  --text-on-accent: #1b1b1e;
+  --accent-a10: rgba(255, 255, 255, 0.06);
+  --accent-a15: rgba(255, 255, 255, 0.1);
+  --accent-a30: rgba(255, 255, 255, 0.2);
 
-  --graph-node: #9a9a9a;
-  --graph-node-unresolved: #5a5a5a;
-  --graph-line: #444444;
+  --graph-node: #9a9aa2;
+  --graph-node-focused: #f4f4f5;
+  --graph-node-tag: #6f6f78;
+  --graph-node-unresolved: #4d4d54;
+  --graph-line: #3d3d44;
+
+  /* Liquid glass */
+  --glass-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.03));
+  --glass-fill-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+  --glass-fill-strong: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.11));
+  --glass-edge: rgba(255, 255, 255, 0.1);
+  --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+  --glass-drop: 0 6px 18px -8px rgba(0, 0, 0, 0.6);
+  --glass-blur: blur(20px) saturate(180%);
+  --glass-panel: rgba(38, 38, 43, 0.72);
 
   --font-text: var(--font-ui), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-monospace: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -77,7 +94,7 @@ body {
   overflow: hidden;
 }
 ::selection {
-  background: rgba(92, 230, 92, 0.25);
+  background: rgba(255, 255, 255, 0.18);
 }
 button {
   font: inherit;
@@ -99,7 +116,7 @@ a {
   color: inherit;
 }
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid rgba(255, 255, 255, 0.55);
   outline-offset: -2px;
   border-radius: var(--radius-s);
 }
@@ -571,6 +588,7 @@ kbd {
 }
 .switch input:checked + .switch-track::after {
   transform: translateX(18px);
+  background: var(--background-primary);
 }
 .switch input:focus-visible + .switch-track {
   outline: 2px solid var(--accent);
@@ -774,11 +792,17 @@ kbd {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.search-result mark,
-.search-match mark {
+.search-result mark {
   color: var(--text-normal);
-  background: var(--text-highlight-bg);
-  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 3px;
+}
+.search-match mark {
+  color: var(--link);
+  background: none;
+  text-decoration: underline;
+  text-decoration-color: var(--link-underline);
+  text-underline-offset: 2px;
 }
 .tag-row {
   display: flex;
@@ -895,7 +919,7 @@ kbd {
   background: none;
   border: 0;
   outline: 0;
-  caret-color: var(--accent);
+  caret-color: var(--text-normal);
 }
 .note .inline-title {
   font-size: calc(var(--font-text-size) * 1.802);
@@ -971,7 +995,7 @@ kbd {
   line-height: 1.5;
   tab-size: 4;
   color: var(--text-normal);
-  caret-color: var(--accent);
+  caret-color: var(--text-normal);
   background: none;
   border: 0;
   outline: 0;
@@ -1311,7 +1335,7 @@ button.pane-section-head:hover {
 .markdown blockquote {
   margin: 0 0 1em;
   padding: 0 0 0 22px;
-  border-left: 2px solid var(--accent);
+  border-left: 2px solid var(--background-modifier-border-focus);
 }
 .markdown blockquote > :last-child {
   margin-bottom: 0;
@@ -1369,13 +1393,13 @@ button.pane-section-head:hover {
   box-decoration-break: clone;
 }
 .internal-link {
-  color: var(--text-accent);
+  color: var(--link);
   text-decoration: underline;
-  text-decoration-color: var(--accent-a30);
+  text-decoration-color: var(--link-underline);
   text-underline-offset: 2px;
 }
 .internal-link:hover {
-  color: var(--accent-hover);
+  color: var(--link-hover);
   text-decoration-color: currentColor;
 }
 .internal-link.is-unresolved {
@@ -1386,7 +1410,7 @@ button.pane-section-head:hover {
   text-decoration: none;
 }
 .external-link {
-  color: var(--text-accent);
+  color: var(--link);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -1403,18 +1427,21 @@ button.pane-section-head:hover {
 }
 .tag {
   display: inline-block;
-  padding: 0.15em 0.6em;
+  padding: 0.15em 0.65em;
   font-size: 0.875em;
   line-height: 1.3;
-  color: var(--text-accent);
+  color: var(--text-muted);
   text-decoration: none;
   white-space: nowrap;
-  background: var(--accent-a10);
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shine);
   border-radius: 2em;
 }
 a.tag:hover,
 button.tag:hover {
-  background: var(--accent-a15);
+  color: var(--text-normal);
+  background: var(--glass-fill-hover);
 }
 
 /* Callouts (Obsidian colours and icons) */
@@ -2136,10 +2163,10 @@ button.tag:hover {
   border-radius: 2px;
   background: var(--background-modifier-border);
 }
-.heat-1 { background: rgba(92, 230, 92, 0.25); }
-.heat-2 { background: rgba(92, 230, 92, 0.45); }
-.heat-3 { background: rgba(92, 230, 92, 0.7); }
-.heat-4 { background: var(--accent); }
+.heat-1 { background: rgba(255, 255, 255, 0.18); }
+.heat-2 { background: rgba(255, 255, 255, 0.34); }
+.heat-3 { background: rgba(255, 255, 255, 0.55); }
+.heat-4 { background: rgba(255, 255, 255, 0.85); }
 .heat.is-today { outline: 1px solid var(--text-muted); outline-offset: 1px; }
 .heat.is-future { opacity: 0; }
 .heatmap-scale {
@@ -2526,6 +2553,245 @@ button.tag:hover {
 }
 
 /* ==========================================================================
+   Liquid glass pills
+   Obsidian groups its icons into pills; here those pills are frosted glass:
+   a translucent fill, a hairline edge, a light top highlight and a backdrop blur.
+   ========================================================================== */
+.ribbon-group,
+.ribbon-toggle,
+.side-tabs,
+.panel-toolbar,
+.view-header-nav,
+.view-actions,
+.tab-new,
+.sidebar-toggle,
+.vault-switcher,
+.vault-bar > .icon-btn,
+.btn,
+.search-box,
+.statusbar,
+.switch-track {
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shine), var(--glass-drop);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-radius: 999px;
+}
+
+/* Icon groups: buttons inside a pill are round and borderless */
+.ribbon-group,
+.side-tabs,
+.panel-toolbar,
+.view-header-nav,
+.view-actions {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+}
+.ribbon-group {
+  flex-direction: column;
+}
+.ribbon {
+  gap: 10px;
+  padding-top: 8px;
+  background: var(--background-secondary);
+}
+.ribbon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+}
+.ribbon-btn:first-child {
+  margin-bottom: 0;
+}
+.ribbon-toggle {
+  width: 36px;
+  height: 36px;
+}
+.ribbon-btn:hover,
+.side-tab:hover,
+.view-header-nav .icon-btn:hover:not(:disabled),
+.view-actions .icon-btn:hover:not(:disabled),
+.panel-toolbar .icon-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+.ribbon-btn.is-active,
+.side-tab.is-active {
+  color: var(--text-normal);
+  background: var(--glass-fill-strong);
+  box-shadow: var(--glass-shine);
+}
+.side-tab,
+.view-header-nav .icon-btn,
+.view-actions .icon-btn,
+.panel-toolbar .icon-btn {
+  border-radius: 999px;
+}
+.side-tab {
+  width: 32px;
+  height: 28px;
+}
+.panel-toolbar {
+  width: fit-content;
+  margin: 10px auto 8px;
+  padding: 3px;
+}
+.view-header {
+  gap: 10px;
+  height: 46px;
+}
+.tab-new,
+.sidebar-toggle {
+  width: 30px;
+  height: 30px;
+}
+.tab-new:hover,
+.sidebar-toggle:hover {
+  background: var(--glass-fill-hover) !important;
+}
+
+/* Vault switcher + settings */
+.vault-bar {
+  gap: 6px;
+  padding: 8px;
+  border-top: 0;
+}
+.vault-switcher {
+  padding: 5px 12px;
+}
+.vault-switcher:hover {
+  background: var(--glass-fill-hover);
+}
+.vault-bar > .icon-btn {
+  width: 30px;
+  height: 30px;
+}
+
+/* Buttons */
+.btn {
+  height: 32px;
+  padding: 0 16px;
+  color: var(--text-normal);
+}
+.btn:hover:not(:disabled) {
+  background: var(--glass-fill-hover);
+}
+.btn-primary {
+  font-weight: 600;
+  color: #fff;
+  background: var(--glass-fill-strong);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.15));
+}
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.btn-ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.07);
+}
+.btn-ghost.is-on {
+  color: var(--text-normal);
+  background: var(--glass-fill-strong);
+  border-color: var(--glass-edge);
+}
+.btn-danger {
+  color: #fff;
+  background: linear-gradient(180deg, rgba(251, 70, 76, 0.85), rgba(201, 58, 63, 0.85));
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.btn-round {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+}
+
+/* Inputs and toggles */
+.search-box {
+  height: 32px;
+  padding: 0 6px 0 12px;
+}
+.search-box:focus-within {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+.switch-track {
+  box-shadow: var(--glass-shine);
+}
+.switch-track::after {
+  background: #f4f4f5;
+}
+.switch input:checked + .switch-track {
+  background: linear-gradient(180deg, #f4f4f5, #d4d4d8);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Floating status bar pill */
+.statusbar {
+  right: 10px;
+  bottom: 8px;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: 999px;
+}
+
+/* Frosted panels: menus, palette, popovers, notices, graph filters */
+.menu,
+.sheet,
+.palette,
+.hover-preview,
+.graph-controls,
+.toast,
+.suggest {
+  background: var(--glass-panel);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shine), var(--shadow-l);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+.menu {
+  border-radius: 14px;
+}
+.menu .sheet-item,
+.palette-list li,
+.suggest li {
+  border-radius: 8px;
+}
+.palette {
+  border-radius: 18px;
+}
+.hover-preview,
+.graph-controls {
+  border-radius: 16px;
+}
+.graph-controls.is-closed {
+  border-radius: 999px;
+}
+.toast {
+  border-radius: 999px;
+}
+.suggest {
+  border-radius: 12px;
+}
+.sheet-item.is-current::after {
+  background: var(--text-normal);
+}
+
+/* Study controls */
+.study-controls .btn-round {
+  width: 40px;
+  height: 40px;
+}
+.btn-flip {
+  height: 40px;
+}
+
+/* ==========================================================================
    Tablets: right sidebar becomes a drawer
    ========================================================================== */
 @media (max-width: 1100px) {
@@ -2849,6 +3115,119 @@ button.tag:hover {
   }
   .palette-footer {
     display: none;
+  }
+}
+
+/* Phones: floating glass controls over the note, like iOS */
+@media (max-width: 820px) {
+  .shell,
+  .shell[data-left="closed"],
+  .shell[data-right="closed"],
+  .shell[data-left="closed"][data-right="closed"] {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .mobile-header {
+    gap: 8px;
+    height: calc(56px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) 10px 0;
+    border-bottom: 0;
+  }
+  .mobile-header .icon-btn,
+  .mobile-title {
+    background: var(--glass-fill);
+    border: 1px solid var(--glass-edge);
+    box-shadow: var(--glass-shine), var(--glass-drop);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border-radius: 999px;
+  }
+  .mobile-header .icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+  .mobile-title {
+    flex: 0 1 auto;
+    max-width: calc(100% - 150px);
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+
+  /* Bottom bar: a floating glass capsule the note scrolls behind */
+  .mobile-nav {
+    position: fixed;
+    left: 50%;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    z-index: 40;
+    width: min(92vw, 380px);
+    height: 58px;
+    padding: 0 8px;
+    transform: translateX(-50%);
+    background: var(--glass-panel);
+    border: 1px solid var(--glass-edge);
+    border-radius: 999px;
+    box-shadow: var(--glass-shine), 0 12px 32px -10px rgba(0, 0, 0, 0.7);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+  }
+  .mnav-btn {
+    width: 48px;
+    height: 44px;
+    border-radius: 999px;
+  }
+  .mnav-btn:active:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Keyboard toolbar: a glass capsule above the keyboard */
+  .edit-toolbar {
+    left: 8px;
+    right: 8px;
+    height: 50px;
+    margin-bottom: 8px;
+    padding: 0 6px;
+    background: var(--glass-panel);
+    border: 1px solid var(--glass-edge);
+    border-radius: 999px;
+    box-shadow: var(--glass-shine), 0 10px 28px -10px rgba(0, 0, 0, 0.7);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+  }
+  .tool {
+    border-radius: 999px;
+  }
+
+  /* Drawers and sheets are frosted too */
+  .sidebar-left,
+  .right-panel,
+  .shell[data-right="closed"] .right-panel {
+    background: rgba(35, 35, 39, 0.82);
+    border-color: var(--glass-edge);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+  }
+  .sheet {
+    border-radius: 28px 28px 0 0;
+  }
+  .sheet-item {
+    border-radius: 12px;
+  }
+
+  /* Room for the floating bar */
+  .note {
+    padding-bottom: 140px;
+  }
+  .page {
+    padding-bottom: 120px;
+  }
+  .study-controls {
+    padding-bottom: calc(86px + env(safe-area-inset-bottom));
+  }
+  .toasts {
+    top: auto;
+    bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+  .toast {
+    border-radius: 18px;
   }
 }
 
