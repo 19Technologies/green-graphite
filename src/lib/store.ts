@@ -15,7 +15,7 @@ import {
   newId,
   normalize,
   saveState,
-  seedState,
+  emptyState,
   titleOf,
 } from "./vault";
 import { VaultIndex, buildIndex, rewriteLinks } from "./links";
@@ -206,14 +206,14 @@ export const vault = {
     });
   },
 
-  createNote(opts: { folder?: string; title?: string; content?: string; newTab?: boolean } = {}) {
+  createNote(opts: { folder?: string; title?: string; content?: string; newTab?: boolean; open?: boolean } = {}) {
     const id = newId();
     set((s) => {
       const path = uniquePath(s, opts.folder ?? "", opts.title?.trim() || "Untitled");
       const now = Date.now();
       return withNote(s, { id, path, content: opts.content ?? "", created: now, updated: now });
     });
-    vault.openNote(id, { newTab: opts.newTab });
+    if (opts.open !== false) vault.openNote(id, { newTab: opts.newTab });
     return id;
   },
 
@@ -408,7 +408,7 @@ export const vault = {
   },
 
   reset() {
-    set(() => seedState(Date.now()));
+    set(() => emptyState());
   },
 };
 

@@ -1,6 +1,6 @@
 /* ==========================================================================
    Green Graphite: an Obsidian fork. Values follow Obsidian's default dark
-   theme. Green (#5CE65C) appears only on links; icon groups are liquid-glass pills.
+   theme. Green (#C5E8B2) appears only on links; icon groups are liquid-glass pills.
    ========================================================================== */
 :root {
   /* Obsidian black, with sidebars one step lighter in the same cool tone */
@@ -25,9 +25,9 @@
   --text-highlight-bg: rgba(255, 208, 0, 0.4);
 
   /* Green is reserved for links. Everything else interactive is neutral. */
-  --link: #5ce65c;
-  --link-hover: #7cec7c;
-  --link-underline: rgba(92, 230, 92, 0.35);
+  --link: #c5e8b2;
+  --link-hover: #d8f0cb;
+  --link-underline: rgba(197, 232, 178, 0.35);
   --accent: #e4e4e7;
   --accent-hover: #f4f4f5;
   --text-accent: var(--text-normal);
@@ -3244,4 +3244,45 @@ button.tag:hover {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Editor live preview for links: text is drawn by .editor-backdrop behind a transparent textarea. */
+.editor-backdrop {
+  position: absolute;
+  inset: 0;
+  font-family: var(--font-text);
+  font-size: var(--font-text-size);
+  line-height: 1.5;
+  tab-size: 4;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  color: var(--text-normal);
+  pointer-events: auto;
+  user-select: none;
+}
+.editor-input {
+  position: relative;
+  z-index: 1;
+  color: transparent !important;
+  caret-color: var(--text-normal);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+.editor-input::placeholder {
+  color: var(--text-faint);
+}
+.ed-bracket {
+  color: var(--text-faint);
+}
+.ed-link {
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-color: var(--link-underline);
+  text-underline-offset: 2px;
+}
+.ed-link.is-unresolved {
+  opacity: 0.65;
+}
+.editor.is-over-link .ed-link {
+  text-decoration-color: currentColor;
 }

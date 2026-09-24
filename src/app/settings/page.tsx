@@ -160,7 +160,7 @@ export default function SettingsPage() {
 
       <section className="card-panel danger">
         <div className="card-panel-head"><h2>Reset</h2></div>
-        <p className="setting-note">Replace everything with the starter vault. Export first if you want to keep your notes.</p>
+        <p className="setting-note">Delete every note and start again with an empty vault. Export first if you want to keep your notes.</p>
         {confirmReset ? (
           <div className="btn-row">
             <span className="confirm-text">This deletes all {Object.keys(notes).length} notes.</span>
@@ -169,10 +169,10 @@ export default function SettingsPage() {
               onClick={() => {
                 vault.reset();
                 setConfirmReset(false);
-                toast("Vault reset to the starter notes");
+                toast("All notes deleted");
               }}
             >
-              Yes, reset everything
+              Yes, delete everything
             </button>
             <button className="btn btn-ghost" onClick={() => setConfirmReset(false)}>
               Cancel
@@ -180,7 +180,7 @@ export default function SettingsPage() {
           </div>
         ) : (
           <button className="btn btn-danger-outline" onClick={() => setConfirmReset(true)}>
-            <RotateCcw size={14} /> Reset vault…
+            <RotateCcw size={14} /> Delete all notes…
           </button>
         )}
       </section>

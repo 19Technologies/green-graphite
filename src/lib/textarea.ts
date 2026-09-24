@@ -36,10 +36,13 @@ export function caretPosition(ta: HTMLTextAreaElement, pos: number) {
 export function insert(ta: HTMLTextAreaElement, from: number, to: number, text: string) {
   ta.focus({ preventScroll: true });
   ta.setSelectionRange(from, to);
-  if (!document.execCommand("insertText", false, text)) {
+  const ok = text ? document.execCommand("insertText", false, text) : from === to || document.execCommand("delete");
+  if (!ok) {
     ta.setRangeText(text, from, to, "end");
     ta.dispatchEvent(new Event("input", { bubbles: true }));
   }
+  // Chrome can leave the caret on the wrong side of a trailing newline after a delete; pin it.
+  ta.setSelectionRange(from + text.length, from + text.length);
 }
 
 /** Wrap the selection (or the word at the caret) in before/after, toggling it off if already wrapped. */

@@ -104,7 +104,7 @@ export default function GraphCanvas({
     const t = (link.target as GraphNode)?.id;
     const line = cssVar("--graph-line", "#4a4a4a");
     // Links are the only thing drawn in green.
-    if (hover.current && (s === hover.current || t === hover.current)) return cssVar("--link", "#5ce65c");
+    if (hover.current && (s === hover.current || t === hover.current)) return cssVar("--link", "#c5e8b2");
     if (hover.current) return withAlpha(line, 0.3);
     return line;
   };
