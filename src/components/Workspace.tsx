@@ -337,6 +337,9 @@ function EmptyWorkspace() {
             Today&apos;s daily note
           </button>
         </div>
+        <button className="empty-action learn-link" onClick={() => setUI({ onboarding: true })}>
+          New here? Take the 1-minute tour
+        </button>
         {!firstRun && (
           <>
             <button className="empty-action" onClick={() => setUI({ palette: "notes" })}>

@@ -4,7 +4,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   BookOpen, CalendarDays, Columns2, Download, Eye, FilePlus2, FileText, FolderPlus, Layers, Network,
-  PanelLeft, PanelRight, PenLine, Search, Settings, Shuffle, Trash2, TextCursorInput,
+  GraduationCap, PanelLeft, PanelRight, PenLine, Search, Settings, Shuffle, Trash2, TextCursorInput,
 } from "lucide-react";
 import { folderOf, titleOf } from "@/lib/vault";
 import { rank } from "@/lib/fuzzy";
@@ -61,6 +61,7 @@ function Palette({ mode }: { mode: "commands" | "notes" }) {
       { id: "right", label: "Toggle right sidebar", icon: <PanelRight size={15} />, run: () => vault.setPanel("rightOpen") },
       { id: "export", label: "Export vault as JSON", icon: <Download size={15} />, run: () => download("green-graphite-vault.json", vault.exportJSON()) },
       { id: "settings", label: "Open settings", icon: <Settings size={15} />, run: go("/settings") },
+      { id: "learn", label: "Learn the basics: take the tour", icon: <GraduationCap size={15} />, run: () => setUI({ onboarding: true }) },
     ];
     if (activeNote) {
       const count = cardsOf(notes).filter((c) => c.noteId === activeNote.id).length;

@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeft, ArrowRight, BookOpen, CalendarDays, Dices, FileText, FolderPlus, GitFork, Layers, Menu, Moon, Plus, Search,
-  Settings, SquareTerminal, Sun, X,
+  GraduationCap, Settings, SquareTerminal, Sun, X,
 } from "lucide-react";
 import { folderOf, titleOf } from "@/lib/vault";
 import { plainLine } from "@/lib/links";
@@ -33,6 +33,7 @@ function MenuSheet() {
     { label: "Random note", icon: <Dices size={18} />, run: () => { vault.openRandom(); router.push("/"); } },
     { label: "New folder", icon: <FolderPlus size={18} />, run: () => { vault.createFolder(); setUI({ mobileLeft: true, leftView: "files" }); } },
     { label: "Command palette", icon: <SquareTerminal size={18} />, run: () => setUI({ palette: "commands" }) },
+    { label: "Learn the basics", icon: <GraduationCap size={18} />, run: () => setUI({ onboarding: true }) },
     { label: dark ? "Paper theme" : "Graphite theme", icon: dark ? <Sun size={18} /> : <Moon size={18} />, run: () => vault.updateSettings({ theme: dark ? "paper" : "graphite" }) },
     { label: "Settings", icon: <Settings size={18} />, run: () => router.push("/settings") },
   ];

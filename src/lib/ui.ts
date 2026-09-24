@@ -26,6 +26,8 @@ export interface UIState {
   editorFocused: boolean;
   installPrompt: InstallPromptEvent | null;
   rightTab: RightTab;
+  /** The "Learn" onboarding tour is open. */
+  onboarding: boolean;
 }
 
 const INITIAL: UIState = {
@@ -41,6 +43,7 @@ const INITIAL: UIState = {
   editorFocused: false,
   installPrompt: null,
   rightTab: "backlinks",
+  onboarding: false,
 };
 
 let ui = INITIAL;

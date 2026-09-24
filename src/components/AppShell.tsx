@@ -17,6 +17,7 @@ import EditToolbar from "./EditToolbar";
 import Logo from "./Logo";
 import TabBar from "./TabBar";
 import RightPanel from "./RightPanel";
+import Onboarding, { LearnButton } from "./Onboarding";
 
 function Toasts() {
   const toasts = useToasts();
@@ -283,6 +284,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           ))}
         </div>
         <span className="ribbon-spacer" />
+        <LearnButton className="ribbon-btn" label={false} />
         <ThemeToggle />
       </nav>
 
@@ -315,6 +317,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </button>
         </div>
         <div className="sidebar-body">{ready && (leftView === "files" ? <FileTree /> : <SearchPanel />)}</div>
+        <div className="learn-row">
+          <LearnButton className="learn-btn learn-wide" text="Learn the basics" />
+        </div>
         <div className="vault-bar">
           <button className="vault-switcher" onClick={() => setUI({ palette: "notes" })} title="Green Graphite vault">
             <span>Green Graphite</span>
@@ -342,6 +347,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <MobileNav />
       <EditToolbar />
       <CommandPalette />
+      <Onboarding />
       <Toasts />
     </div>
   );

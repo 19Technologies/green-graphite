@@ -82,7 +82,8 @@ export default function Editor({ note, autoFocus = false }: { note: Note; autoFo
   }, [note.content]);
 
   useLayoutEffect(() => {
-    if (autoFocus) ref.current?.focus();
+    // On touch screens, focusing without a tap hides the bottom bar but opens no keyboard, so skip it.
+    if (autoFocus && !matchMedia("(pointer: coarse)").matches) ref.current?.focus();
   }, [autoFocus, note.id]);
 
   // Obsidian-style bracket pairing: "[[" becomes "[[]]" with the caret inside, and typing "]"
