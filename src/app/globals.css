@@ -3058,11 +3058,10 @@ body {
   color: var(--text-muted);
 }
 .eyebrow .dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--brand);
-  box-shadow: 0 0 0 4px var(--brand-soft);
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
 }
 
 /* Ribbon: round icons; the active one sits in a brand pill, like Tutora's tab bar */
