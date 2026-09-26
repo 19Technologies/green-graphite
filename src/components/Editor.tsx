@@ -1,12 +1,16 @@
 "use client";
 
-import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { FilePlus2 } from "lucide-react";
+import { EditorSelection, EditorState, Prec, Transaction } from "@codemirror/state";
+import { EditorView, keymap, placeholder } from "@codemirror/view";
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
+import { indentUnit } from "@codemirror/language";
 import { Note, folderOf, titleOf } from "@/lib/vault";
 import { indexOf, toast, useVault, validateTitle, vault } from "@/lib/store";
-import { WIKI_RE, parseWikiInner } from "@/lib/links";
 import { setUI, useUI } from "@/lib/ui";
-import { caretPosition, indent, insert, wrap } from "@/lib/textarea";
+import { continueList, diff, indent, linkSelection, pairBrackets, setActiveEditor, activeEditor, wrap } from "@/lib/cm";
+import { livePreview, refreshPreview } from "@/lib/live-preview";
 
 interface Suggest {
   query: string;
@@ -16,46 +20,15 @@ interface Suggest {
   active: number;
 }
 
-const LIST_RE = /^(\s*)(?:([-*+]) \[[ xX]\] |([-*+]) |(\d+)([.)]) |> )/;
-
-/** The [[link]] (if any) drawn under the pointer, from the highlight layer behind the textarea. */
-function linkAtPoint(x: number, y: number) {
-  const el = document.elementsFromPoint(x, y).find((e) => e.classList.contains("ed-link"));
-  return el ? (el as HTMLElement).dataset.target ?? null : null;
-}
+const PLACEHOLDER = "Start writing…\n\nLink notes with [[double brackets]], and write flashcards like  Hallo :: Hello";
 
 export default function Editor({ note, autoFocus = false }: { note: Note; autoFocus?: boolean }) {
-  const ref = useRef<HTMLTextAreaElement>(null);
+  const wrapper = useRef<HTMLDivElement>(null);
+  const host = useRef<HTMLDivElement>(null);
+  const view = useRef<EditorView | null>(null);
   const { notes } = useVault();
   const [suggest, setSuggest] = useState<Suggest | null>(null);
   const index = indexOf(notes);
-
-  // Live preview for links: the same text drawn behind a transparent textarea, with [[links]] in green.
-  const highlighted = useMemo(() => {
-    const out: React.ReactNode[] = [];
-    let last = 0;
-    for (const m of note.content.matchAll(WIKI_RE)) {
-      const start = m.index!;
-      if (start > last) out.push(note.content.slice(last, start));
-      const { target, heading } = parseWikiInner(m[1]);
-      const exists = !!index.resolve(target);
-      out.push(
-        <Fragment key={start}>
-          <span className="ed-bracket">[[</span>
-          <span
-            className={`ed-link${exists ? "" : " is-unresolved"}`}
-            data-target={heading ? `${target}#${heading}` : target}
-          >
-            {m[1]}
-          </span>
-          <span className="ed-bracket">]]</span>
-        </Fragment>,
-      );
-      last = start + m[0].length;
-    }
-    out.push(note.content.slice(last));
-    return out;
-  }, [note.content, index]);
 
   // Link suggestions match the typed name directly (loose fuzzy matching linked the wrong notes).
   const options = useMemo(() => {
@@ -73,77 +46,22 @@ export default function Editor({ note, autoFocus = false }: { note: Note; autoFo
       .slice(0, 8);
   }, [suggest, notes, note.id]);
 
-  // Grow with content so the whole pane scrolls like a document.
-  useLayoutEffect(() => {
-    const ta = ref.current;
-    if (!ta) return;
-    ta.style.height = "auto";
-    ta.style.height = `${ta.scrollHeight}px`;
-  }, [note.content]);
+  const canCreate = !!suggest && !!suggest.query.trim() && !index.resolve(suggest.query.trim());
+  const count = options.length + (canCreate ? 1 : 0);
 
-  useLayoutEffect(() => {
-    // On touch screens, focusing without a tap hides the bottom bar but opens no keyboard, so skip it.
-    if (autoFocus && !matchMedia("(pointer: coarse)").matches) ref.current?.focus();
-  }, [autoFocus, note.id]);
-
-  // Obsidian-style bracket pairing: "[[" becomes "[[]]" with the caret inside, and typing "]"
-  // over a closing bracket steps over it. Uses beforeinput so it's instant and works on phones.
-  useEffect(() => {
-    const ta = ref.current;
-    if (!ta) return;
-    const onBeforeInput = (e: InputEvent) => {
-      if (e.inputType !== "insertText" || !e.data) return;
-      const { selectionStart: start, selectionEnd: end, value } = ta;
-      if (start !== end) return;
-      if (e.data === "[" && value[start - 1] === "[" && value.slice(start, start + 2) !== "]]") {
-        e.preventDefault();
-        insert(ta, start, end, "[]]");
-        ta.setSelectionRange(start + 1, start + 1);
-      } else if (e.data === "]" && value[start] === "]" && /\[\[[^\[\]\n]*\]?$/.test(value.slice(0, start))) {
-        e.preventDefault();
-        ta.setSelectionRange(start + 1, start + 1);
-      }
-    };
-    ta.addEventListener("beforeinput", onBeforeInput);
-    return () => ta.removeEventListener("beforeinput", onBeforeInput);
-  }, [note.id]);
-
-  // Jump to a specific line (used by "open source note" from a flashcard).
-  const { pendingLine } = useUI();
-  useLayoutEffect(() => {
-    const ta = ref.current;
-    if (pendingLine === null || !ta) return;
-    setUI({ pendingLine: null });
-    const lines = ta.value.split("\n");
-    const start = lines.slice(0, pendingLine).reduce((sum, l) => sum + l.length + 1, 0);
-    const end = start + (lines[pendingLine]?.length ?? 0);
-    ta.focus({ preventScroll: true });
-    ta.setSelectionRange(start, end);
-    const scroller = ta.closest(".note-scroll");
-    if (scroller) {
-      const y = ta.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
-      scroller.scrollTo({ top: y + caretPosition(ta, start).top - scroller.clientHeight / 3, behavior: "smooth" });
-    }
-  }, [pendingLine]);
-
-  const updateSuggest = (ta: HTMLTextAreaElement) => {
-    const caret = ta.selectionStart;
-    const m = /\[\[([^\[\]\n|#]*)$/.exec(ta.value.slice(0, caret));
-    if (!m || ta.selectionEnd !== caret) return setSuggest(null);
-    const pos = caretPosition(ta, caret);
-    setSuggest((s) => ({ query: m[1], start: caret - m[1].length, ...pos, active: s?.query === m[1] ? s.active : 0 }));
-  };
-
+  /** Put the picked title between the brackets and close them. */
   const choose = (title: string, create = false) => {
-    const ta = ref.current;
-    if (!ta || !suggest) return;
-    const caret = ta.selectionStart;
-    const closing = ta.value.slice(caret, caret + 2) === "]]" ? "" : "]]";
-    insert(ta, suggest.start, caret, title + closing);
-    if (!closing) {
-      const after = suggest.start + title.length + 2;
-      ta.setSelectionRange(after, after);
-    }
+    const v = view.current;
+    if (!v || !suggest) return;
+    const caret = v.state.selection.main.head;
+    const closed = v.state.sliceDoc(caret, caret + 2) === "]]";
+    const after = suggest.start + title.length + 2;
+    v.dispatch({
+      changes: { from: suggest.start, to: caret, insert: closed ? title : `${title}]]` },
+      selection: { anchor: after },
+      userEvent: "input.complete",
+    });
+    v.focus();
     setSuggest(null);
     // "Create note" really creates it, in the same folder, without leaving this note.
     if (create && !index.resolve(title) && !validateTitle(title)) {
@@ -164,107 +82,168 @@ export default function Editor({ note, autoFocus = false }: { note: Note; autoFo
     }
   };
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    const ta = e.currentTarget;
-    if (suggest) {
-      const count = options.length + (suggest.query.trim() && !index.resolve(suggest.query.trim()) ? 1 : 0);
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        e.preventDefault();
-        const delta = e.key === "ArrowDown" ? 1 : -1;
-        setSuggest({ ...suggest, active: (suggest.active + delta + count) % Math.max(count, 1) });
-        return;
-      }
-      if ((e.key === "Enter" || e.key === "Tab") && count) {
-        e.preventDefault();
-        const pick = options[suggest.active];
-        choose(pick ? titleOf(pick.path) : suggest.query.trim(), !pick);
-        return;
-      }
-      if (e.key === "Escape") {
-        e.preventDefault();
-        setSuggest(null);
-        return;
-      }
-    }
+  // CodeMirror's handlers are created once per note; they read the latest values through this ref.
+  const live = useRef({ suggest, count, options, index, content: note.content, autoFocus, choose, openLink });
+  useLayoutEffect(() => {
+    live.current = { suggest, count, options, index, content: note.content, autoFocus, choose, openLink };
+  });
 
-    const { selectionStart: start, selectionEnd: end, value } = ta;
-    const lineStart = value.lastIndexOf("\n", start - 1) + 1;
-    const line = value.slice(lineStart, start);
+  useLayoutEffect(() => {
+    const parent = host.current;
+    const frame = wrapper.current;
+    if (!parent || !frame) return;
+    const noteId = note.id;
 
-    if (e.key === "Tab") {
-      e.preventDefault();
-      indent(ta, e.shiftKey);
-      return;
-    }
+    const updateSuggest = (v: EditorView) => {
+      const sel = v.state.selection.main;
+      const line = v.state.doc.lineAt(sel.head);
+      const m = v.hasFocus && sel.empty ? /\[\[([^[\]\n|#]*)$/.exec(v.state.sliceDoc(line.from, sel.head)) : null;
+      if (!m) return setSuggest(null);
+      const query = m[1];
+      v.requestMeasure({
+        read: () => ({ caret: v.coordsAtPos(sel.head), box: frame.getBoundingClientRect() }),
+        write: ({ caret, box }) => {
+          if (!caret) return;
+          setSuggest((s) => ({
+            query,
+            start: sel.head - query.length,
+            top: caret.bottom - box.top,
+            left: caret.left - box.left,
+            active: s?.query === query ? s.active : 0,
+          }));
+        },
+      });
+    };
 
-    if ((e.metaKey || e.ctrlKey) && !e.shiftKey && (e.key === "b" || e.key === "i")) {
-      e.preventDefault();
-      wrap(ta, e.key === "b" ? "**" : "*");
-      return;
-    }
+    const suggestKeys = Prec.highest(
+      keymap.of([
+        ...(["ArrowDown", "ArrowUp"] as const).map((key) => ({
+          key,
+          run: () => {
+            const { suggest: s, count: n } = live.current;
+            if (!s) return false;
+            const delta = key === "ArrowDown" ? 1 : -1;
+            setSuggest({ ...s, active: (s.active + delta + n) % Math.max(n, 1) });
+            return true;
+          },
+        })),
+        ...["Enter", "Tab"].map((key) => ({
+          key,
+          run: () => {
+            const { suggest: s, count: n, options: opts, choose: pick } = live.current;
+            if (!s || !n) return false;
+            const hit = opts[s.active];
+            pick(hit ? titleOf(hit.path) : s.query.trim(), !hit);
+            return true;
+          },
+        })),
+        {
+          key: "Escape",
+          run: () => {
+            if (!live.current.suggest) return false;
+            setSuggest(null);
+            return true;
+          },
+        },
+      ]),
+    );
 
-    if (e.key === "Enter" && !e.shiftKey && !e.metaKey && !e.ctrlKey && start === end) {
-      const m = LIST_RE.exec(line);
-      if (!m) return;
-      e.preventDefault();
-      if (line.trim() === m[0].trim()) {
-        insert(ta, lineStart, start, ""); // empty item ends the list
-        return;
-      }
-      const [, lead, taskBullet, bullet, num, delim] = m;
-      const next = taskBullet
-        ? `${taskBullet} [ ] `
-        : bullet
-          ? `${bullet} `
-          : num
-            ? `${Number(num) + 1}${delim} `
-            : "> ";
-      insert(ta, start, end, `\n${lead}${next}`);
-    }
+    const v = new EditorView({
+      parent,
+      state: EditorState.create({
+        doc: live.current.content,
+        extensions: [
+          suggestKeys,
+          keymap.of([
+            { key: "Enter", run: continueList },
+            { key: "Tab", run: (ed) => indent(ed, false), shift: (ed) => indent(ed, true) },
+            { key: "Mod-b", run: (ed) => wrap(ed, "**") },
+            { key: "Mod-i", run: (ed) => wrap(ed, "*") },
+            { key: "[", run: linkSelection },
+            ...historyKeymap,
+            ...defaultKeymap,
+          ]),
+          history(),
+          pairBrackets,
+          indentUnit.of("\t"),
+          EditorView.lineWrapping,
+          EditorView.contentAttributes.of({
+            spellcheck: "true",
+            autocorrect: "on",
+            autocapitalize: "sentences",
+            "aria-label": "Note text",
+          }),
+          placeholder(PLACEHOLDER),
+          livePreview((target) => !!live.current.index.resolve(target)),
+          EditorView.domEventHandlers({
+            mousedown: (e) => {
+              if (e.button !== 0 || e.shiftKey || e.altKey) return false;
+              const el = (e.target as HTMLElement).closest?.<HTMLElement>(".ed-link, .ed-ext");
+              if (!el) return false;
+              e.preventDefault();
+              if (el.dataset.href) window.open(el.dataset.href, "_blank", "noopener,noreferrer");
+              else live.current.openLink(el.dataset.target ?? "", e.metaKey || e.ctrlKey);
+              return true;
+            },
+          }),
+          EditorView.updateListener.of((u) => {
+            const external = u.transactions.some((tr) => tr.annotation(Transaction.remote));
+            if (u.docChanged && !external) vault.updateNote(noteId, u.state.doc.toString());
+            if (u.focusChanged) {
+              if (u.view.hasFocus) setActiveEditor(u.view);
+              setUI({ editorFocused: u.view.hasFocus });
+              if (!u.view.hasFocus) setTimeout(() => setSuggest(null), 120);
+            }
+            if (u.docChanged || u.selectionSet || u.focusChanged) updateSuggest(u.view);
+          }),
+        ],
+      }),
+    });
+    view.current = v;
+    setActiveEditor(v);
+    // On touch screens, focusing without a tap hides the bottom bar but opens no keyboard, so skip it.
+    if (live.current.autoFocus && !matchMedia("(pointer: coarse)").matches) v.focus();
 
-    if (e.key === "[" && start !== end) {
-      // Wrap the selection in a wikilink.
-      e.preventDefault();
-      insert(ta, start, end, `[[${value.slice(start, end)}]]`);
-    }
-  };
+    return () => {
+      if (v.hasFocus) setUI({ editorFocused: false });
+      if (activeEditor() === v) setActiveEditor(null);
+      v.destroy();
+      view.current = null;
+    };
+  }, [note.id]);
+
+  // Outside changes (a rename rewriting links, a task ticked in reading view, another tab):
+  // apply only the part that changed so the caret stays put.
+  useEffect(() => {
+    const v = view.current;
+    if (!v) return;
+    const current = v.state.doc.toString();
+    if (current === note.content) return;
+    v.dispatch({ changes: diff(current, note.content), annotations: [Transaction.remote.of(true), Transaction.addToHistory.of(false)] });
+  }, [note.content]);
+
+  // Links turn from "new" to existing (and back) as notes come and go.
+  useEffect(() => {
+    view.current?.dispatch({ effects: refreshPreview.of(null) });
+  }, [index]);
+
+  // Jump to a specific line (used by "open source note" from a flashcard).
+  const { pendingLine } = useUI();
+  useLayoutEffect(() => {
+    const v = view.current;
+    if (pendingLine === null || !v) return;
+    setUI({ pendingLine: null });
+    const line = v.state.doc.line(Math.min(pendingLine + 1, v.state.doc.lines));
+    v.focus();
+    v.dispatch({
+      selection: EditorSelection.range(line.from, line.to),
+      effects: EditorView.scrollIntoView(line.from, { y: "center" }),
+    });
+  }, [pendingLine]);
 
   return (
-    <div className="editor">
-      <div className="editor-backdrop" aria-hidden>
-        {highlighted}
-        {"\n"}
-      </div>
-      <textarea
-        ref={ref}
-        className="editor-input"
-        value={note.content}
-        spellCheck
-        placeholder={"Start writing…\n\nLink notes with [[double brackets]], and write flashcards like  Hallo :: Hello"}
-        onChange={(e) => {
-          vault.updateNote(note.id, e.target.value);
-          updateSuggest(e.target);
-        }}
-        onClick={(e) => {
-          const ta = e.currentTarget;
-          if (ta.selectionStart !== ta.selectionEnd) return;
-          const target = linkAtPoint(e.clientX, e.clientY);
-          if (target) openLink(target, e.metaKey || e.ctrlKey);
-        }}
-        onMouseMove={(e) => {
-          const over = !!linkAtPoint(e.clientX, e.clientY);
-          e.currentTarget.style.cursor = over ? "pointer" : "";
-          e.currentTarget.parentElement?.classList.toggle("is-over-link", over);
-        }}
-        onMouseLeave={(e) => e.currentTarget.parentElement?.classList.remove("is-over-link")}
-        onKeyDown={onKeyDown}
-        onSelect={(e) => updateSuggest(e.currentTarget)}
-        onFocus={() => setUI({ editorFocused: true })}
-        onBlur={() => {
-          setUI({ editorFocused: false });
-          setTimeout(() => setSuggest(null), 120);
-        }}
-      />
+    <div className="editor" ref={wrapper}>
+      <div ref={host} />
       {suggest && (
         <ul className="suggest" style={{ top: suggest.top + 6, left: Math.max(0, suggest.left - 12) }} role="listbox">
           {options.map((n, i) => (
@@ -282,7 +261,7 @@ export default function Editor({ note, autoFocus = false }: { note: Note; autoFo
               {folderOf(n.path) && <span className="suggest-path">{folderOf(n.path)}</span>}
             </li>
           ))}
-          {suggest.query.trim() && !index.resolve(suggest.query.trim()) && (
+          {canCreate && (
             <li
               role="option"
               aria-selected={suggest.active === options.length}

@@ -1070,26 +1070,6 @@ kbd {
 .editor {
   position: relative;
 }
-.editor-input {
-  display: block;
-  width: 100%;
-  min-height: 55vh;
-  padding: 0;
-  font-family: var(--font-text);
-  font-size: var(--font-text-size);
-  line-height: 1.5;
-  tab-size: 4;
-  color: var(--text-normal);
-  caret-color: var(--text-normal);
-  background: none;
-  border: 0;
-  outline: 0;
-  resize: none;
-  overflow: hidden;
-}
-.editor-input::placeholder {
-  color: var(--text-faint);
-}
 .suggest {
   position: absolute;
   z-index: 20;
@@ -2960,45 +2940,132 @@ button.pane-section-head:hover {
   }
 }
 
-/* Editor live preview for links: text is drawn by .editor-backdrop behind a transparent textarea. */
-.editor-backdrop {
-  position: absolute;
-  inset: 0;
+/* Editor (CodeMirror) with Obsidian-style Live Preview: syntax hides until the cursor touches it. */
+.editor .cm-editor {
+  min-height: 55vh;
+  color: var(--text-normal);
+  background: none;
+}
+.editor .cm-editor.cm-focused {
+  outline: 0;
+}
+.editor .cm-editor .cm-scroller {
   font-family: var(--font-text);
   font-size: var(--font-text-size);
   line-height: 1.5;
-  tab-size: 4;
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-  color: var(--text-normal);
-  pointer-events: auto;
-  user-select: none;
+  overflow: visible;
 }
-.editor-input {
-  position: relative;
-  z-index: 1;
-  color: transparent !important;
+.editor .cm-editor .cm-content {
+  min-height: 55vh;
+  padding: 0;
   caret-color: var(--text-normal);
+}
+.editor .cm-editor .cm-line {
+  padding: 0;
+}
+.editor .cm-editor .cm-placeholder {
+  color: var(--text-faint);
   white-space: pre-wrap;
-  overflow-wrap: break-word;
 }
-.editor-input::placeholder {
+.editor .cm-editor .cm-cursor {
+  border-left: 2px solid var(--text-normal);
+}
+.cm-formatting,
+.cm-url {
   color: var(--text-faint);
 }
-.ed-bracket {
+.cm-strong {
+  font-weight: 700;
+}
+.cm-em {
+  font-style: italic;
+}
+.cm-strike {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+.cm-mono {
+  font-family: var(--font-monospace);
+  font-size: 0.88em;
+  padding: 1px 0;
+  background: var(--paper-2);
+  border-radius: 4px;
+}
+.cm-highlight {
+  background: linear-gradient(transparent 45%, var(--text-highlight-bg) 45%);
+}
+.cm-tag {
+  font-size: 0.9em;
+  font-weight: 700;
+  color: var(--tint-ink);
+  background: var(--lilac);
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px var(--lilac);
+}
+.cm-tag[data-tint="sun"] { background: var(--sun); box-shadow: 0 0 0 2px var(--sun); }
+.cm-tag[data-tint="sky"] { background: var(--sky); box-shadow: 0 0 0 2px var(--sky); }
+.cm-tag[data-tint="peach"] { background: var(--peach); box-shadow: 0 0 0 2px var(--peach); }
+.cm-card-sep {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.editor .cm-line.cm-heading {
+  font-family: var(--font-heading);
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+  font-weight: 750;
+  padding-top: 0.35em;
+}
+.editor .cm-line.cm-heading-1 { font-size: 1.802em; font-weight: 800; }
+.editor .cm-line.cm-heading-2 { font-size: 1.602em; }
+.editor .cm-line.cm-heading-3 { font-size: 1.424em; }
+.editor .cm-line.cm-heading-4 { font-size: 1.266em; font-weight: 700; }
+.editor .cm-line.cm-heading-5 { font-size: 1.125em; font-weight: 700; }
+.editor .cm-line.cm-heading-6 { font-size: 1em; font-weight: 700; }
+.editor .cm-line.cm-quote-line {
+  padding-left: 18px;
+  border-left: 3px solid var(--brand);
+}
+.editor .cm-line.cm-code-line {
+  font-family: var(--font-monospace);
+  font-size: 0.88em;
+  padding: 0 12px;
+  background: var(--paper-2);
+}
+.cm-hr {
   color: var(--text-faint);
 }
-.ed-link {
-  color: var(--link);
-  text-decoration: underline;
-  text-decoration-color: var(--link-underline);
-  text-underline-offset: 2px;
+.cm-bullet {
+  display: inline-block;
+  width: 0.62em;
+  color: var(--text-muted);
+  font-weight: 700;
+  text-align: center;
+}
+.cm-task {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  margin-right: 4px;
+  vertical-align: -3px;
+  cursor: pointer;
+  background: var(--card);
+  border: 1.5px solid var(--edge);
+  border-radius: 6px;
+}
+.cm-task.is-checked {
+  background: var(--brand) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a1a1a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / 11px no-repeat;
+}
+.editor .cm-line.cm-task-done {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+.ed-link,
+.ed-ext {
+  cursor: pointer;
 }
 .ed-link.is-unresolved {
   opacity: 0.65;
-}
-.editor.is-over-link .ed-link {
-  text-decoration-color: currentColor;
 }
 
 /* ==========================================================================
@@ -3455,6 +3522,7 @@ body {
 .internal-link,
 .external-link,
 .ed-link,
+.ed-ext,
 .search-match mark {
   color: var(--link-text);
   text-decoration: none;
@@ -3479,7 +3547,8 @@ body {
 .ed-link.is-unresolved {
   opacity: 0.6;
 }
-.editor.is-over-link .ed-link {
+.ed-link:hover,
+.ed-ext:hover {
   background: linear-gradient(transparent 0%, var(--link-mark-hover) 0%);
 }
 

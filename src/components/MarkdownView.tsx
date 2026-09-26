@@ -6,7 +6,7 @@ import remarkGfm from "remark-gfm";
 import type { Element, ElementContent } from "hast";
 import { usePathname, useRouter } from "next/navigation";
 import { remarkWiki } from "@/lib/remark-wiki";
-import { slugify } from "@/lib/links";
+import { slugify, tintFor } from "@/lib/links";
 import { titleOf } from "@/lib/vault";
 import { useIndex, useVault, vault } from "@/lib/store";
 import { openSearch, setUI } from "@/lib/ui";
@@ -114,14 +114,6 @@ function WikiLink({ target, children }: { target: string; children: ReactNode })
       )}
     </>
   );
-}
-
-/** Tutora pastel tint for a tag, stable per tag name. Mint is left out: green is for links only. */
-const TINTS = ["sun", "sky", "lilac", "peach"] as const;
-export function tintFor(tag: string) {
-  let h = 7;
-  for (const ch of tag.toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return TINTS[h % TINTS.length];
 }
 
 function TagLink({ tag, children }: { tag: string; children: ReactNode }) {

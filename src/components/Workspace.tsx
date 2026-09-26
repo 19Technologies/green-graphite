@@ -10,6 +10,7 @@ import {
 import { Note, ViewMode, folderOf, titleOf } from "@/lib/vault";
 import { cardsOf, toast, useVault, vault } from "@/lib/store";
 import { setUI, useUI } from "@/lib/ui";
+import { focusEditor } from "@/lib/cm";
 import MarkdownView from "./MarkdownView";
 import Sheet, { type Anchor } from "./Sheet";
 import Editor from "./Editor";
@@ -61,7 +62,7 @@ function InlineTitle({ note }: { note: Note }) {
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
-          if (commit()) (document.querySelector(".editor-input") as HTMLTextAreaElement | null)?.focus();
+          if (commit()) focusEditor();
         }
         if (e.key === "Escape") {
           setDraft(null);
@@ -123,7 +124,7 @@ function NoteView({ note, mode }: { note: Note; mode: ViewMode }) {
       className={`note-scroll mode-${mode}`}
       data-mode={mode}
       onTouchStart={(e) => {
-        pullStart.current = scroller.current?.scrollTop === 0 && !(e.target as Element).closest("textarea") ? e.touches[0].clientY : null;
+        pullStart.current = scroller.current?.scrollTop === 0 && !(e.target as Element).closest(".cm-editor") ? e.touches[0].clientY : null;
       }}
       onTouchMove={(e) => {
         if (pullStart.current === null) return;

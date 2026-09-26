@@ -96,7 +96,7 @@ function StatusBar() {
   );
 }
 
-const NO_SWIPE = "[data-no-swipe], input, textarea, .tabs, .table-wrap, pre, .graph-canvas, .flip-wrap, .heatmap-wrap, .palette-backdrop";
+const NO_SWIPE = "[data-no-swipe], input, textarea, .cm-editor, .tabs, .table-wrap, pre, .graph-canvas, .flip-wrap, .heatmap-wrap, .palette-backdrop";
 
 /**
  * Obsidian-style drawer gestures on phones: swipe right to reveal the file explorer,

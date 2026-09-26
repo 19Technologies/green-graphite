@@ -18,6 +18,14 @@ export interface Heading {
 export const WIKI_RE = /\[\[([^\[\]\n]+?)\]\]/g;
 export const TAG_RE = /(^|[\s(])#([\p{L}_][\p{L}\p{N}_/-]*)/gu;
 
+/** Tutora pastel tint for a tag, stable per tag name. Mint is left out: green is for links only. */
+const TINTS = ["sun", "sky", "lilac", "peach"] as const;
+export function tintFor(tag: string) {
+  let h = 7;
+  for (const ch of tag.toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return TINTS[h % TINTS.length];
+}
+
 export function parseWikiInner(inner: string) {
   const pipe = inner.indexOf("|");
   const left = pipe === -1 ? inner : inner.slice(0, pipe);
