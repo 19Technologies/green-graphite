@@ -7,7 +7,7 @@ A linked-notes vault for learning languages, in the style of Obsidian. You write
 - **Wikilinks**: `[[Note]]`, `[[Note|alias]]` and `[[Note#Heading]]` render inline. Hover over a link to preview the note. Clicking a link to a note that doesn't exist yet creates it.
 - **Backlinks, outgoing links, outline and a local graph** in the right sidebar.
 - **Graph view**: nodes are sized by how many links they have. Tags and unresolved links can be shown as their own nodes. Hovering a node highlights its neighbours, and clicking it opens the note.
-- **Editor** with `[[` autocomplete, automatic list continuation, Tab to indent, and native undo. There are three views: read, edit, and split (edit with live preview).
+- **Editor** built on CodeMirror 6 with Obsidian-style Live Preview: `[[links]]`, bold, headings and tasks render in place and show their syntax only while the cursor is on them. `[[` autocomplete, list continuation, Tab to indent, undo/redo. Three views: read, edit, and split.
 - **Files**: folders, drag-and-drop between them, and inline renaming. Renaming a note updates every link that points to it. Deleting asks for confirmation inline and can be undone.
 - **Command palette** (`⌘K`), **quick switcher** (`⌘O`), full-text and `#tag` search (`⌘⇧F`), daily notes.
 - **Flashcards**: notes are turned into decks automatically. Study by flipping cards, swiping, or using the keyboard. A heatmap and a streak track your study days.
