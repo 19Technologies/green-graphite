@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "Green Graphite",
-    short_name: "Graphite",
+    name: "Cranoly",
+    short_name: "Cranoly",
     description: "Linked notes for language learning, with flashcards inside your notes.",
     start_url: "/",
     scope: "/",

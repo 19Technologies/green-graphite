@@ -47,30 +47,30 @@ function InstallApp() {
     <section className="card-panel">
       <div className="card-panel-head"><h2>Install the app</h2></div>
       {standalone ? (
-        <p className="setting-note">Green Graphite is installed on this device and works offline.</p>
+        <p className="setting-note">Cranoly is installed on this device and works offline.</p>
       ) : installPrompt ? (
         <>
-          <p className="setting-note">Add Green Graphite to your home screen. It opens full-screen and works offline.</p>
+          <p className="setting-note">Add Cranoly to your home screen. It opens full-screen and works offline.</p>
           <button
             className="btn btn-primary"
             onClick={async () => {
               await installPrompt.prompt();
               const { outcome } = await installPrompt.userChoice;
               setUI({ installPrompt: null });
-              if (outcome === "accepted") toast("Installing Green Graphite…");
+              if (outcome === "accepted") toast("Installing Cranoly…");
             }}
           >
-            <Smartphone size={14} /> Install Green Graphite
+            <Smartphone size={14} /> Install Cranoly
           </button>
         </>
       ) : ios ? (
         <p className="setting-note install-steps">
-          In Safari, tap <Share size={14} /> <b>Share</b>, then <b>Add to Home Screen</b>. Green Graphite then opens
+          In Safari, tap <Share size={14} /> <b>Share</b>, then <b>Add to Home Screen</b>. Cranoly then opens
           full-screen like a regular app and works offline.
         </p>
       ) : (
         <p className="setting-note">
-          Use your browser&apos;s <b>Install app</b> or <b>Add to Home screen</b> option. Green Graphite then opens in its own
+          Use your browser&apos;s <b>Install app</b> or <b>Add to Home screen</b> option. Cranoly then opens in its own
           window and works offline.
         </p>
       )}
@@ -141,7 +141,7 @@ export default function SettingsPage() {
           study history, {(bytes / 1024).toFixed(1)} KB. Export it now and then so you have a backup.
         </p>
         <div className="btn-row">
-          <button className="btn" onClick={() => download("green-graphite-vault.json", vault.exportJSON())}>
+          <button className="btn" onClick={() => download("cranoly-vault.json", vault.exportJSON())}>
             <Download size={14} /> Export vault
           </button>
           <button
@@ -151,7 +151,7 @@ export default function SettingsPage() {
                 await navigator.clipboard.writeText(vault.exportMarkdown());
                 toast("All notes copied as Markdown");
               } catch {
-                download("green-graphite-notes.md", vault.exportMarkdown(), "text/markdown");
+                download("cranoly-notes.md", vault.exportMarkdown(), "text/markdown");
               }
             }}
           >

@@ -164,7 +164,7 @@ function DemoTheme() {
         ))}
       </div>
       <p className="ob-fine">
-        Tip: add Green Graphite to your home screen from Settings → Install the app. It works offline.
+        Tip: add Cranoly to your home screen from Settings → Install the app. It works offline.
       </p>
     </div>
   );
@@ -181,7 +181,7 @@ const STEPS: Step[] = [
   {
     eyebrow: "Welcome",
     title: "Notes that connect.",
-    body: "Green Graphite is a notebook for learning languages. Your notes link together like Obsidian, and your flashcards live right inside them.",
+    body: "Cranoly is a notebook for learning languages. Your notes link together like Obsidian, and your flashcards live right inside them.",
     demo: <DemoWelcome />,
   },
   {
@@ -252,7 +252,7 @@ function Tour() {
   };
 
   return (
-    <div className="ob-layer" data-no-swipe role="dialog" aria-modal="true" aria-label="Learn Green Graphite">
+    <div className="ob-layer" data-no-swipe role="dialog" aria-modal="true" aria-label="Learn Cranoly">
       <div className="ob-backdrop" onClick={close} />
       <div className="ob-card">
         <div className="ob-top">

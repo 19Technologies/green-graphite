@@ -1,4 +1,4 @@
-/** Green Graphite mark: a graphite hex lattice with a glowing node at its centre. */
+/** Cranoly mark: a hex lattice with a glowing node at its centre. */
 export default function Logo({ size = 22 }: { size?: number }) {
   return (
     <svg viewBox="0 0 32 32" width={size} height={size} aria-hidden>

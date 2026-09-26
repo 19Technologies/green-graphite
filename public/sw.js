@@ -1,4 +1,4 @@
-// Green Graphite service worker: makes the installed app work offline.
+// Cranoly service worker: makes the installed app work offline.
 // Hashed build assets are cached forever; pages are network-first with a cached fallback.
 const CACHE = "graphite-v1";
 const SHELL = ["/", "/graph", "/flashcards", "/flashcards/study", "/settings", "/manifest.webmanifest", "/icon.svg"];

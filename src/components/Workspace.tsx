@@ -287,7 +287,7 @@ function MobileHeader({ note, mode }: { note?: Note; mode: ViewMode }) {
         <PanelLeft size={20} />
       </button>
       <button className="mobile-title" onClick={() => setUI({ palette: "notes" })} aria-label="Switch note">
-        <span>{note ? titleOf(note.path) : "Green Graphite"}</span>
+        <span>{note ? titleOf(note.path) : "Cranoly"}</span>
       </button>
       {note && (
         <>

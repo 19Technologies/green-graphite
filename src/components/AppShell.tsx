@@ -321,8 +321,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <LearnButton className="learn-btn learn-wide" text="Learn the basics" />
         </div>
         <div className="vault-bar">
-          <button className="vault-switcher" onClick={() => setUI({ palette: "notes" })} title="Green Graphite vault">
-            <span>Green Graphite</span>
+          <button className="vault-switcher" onClick={() => setUI({ palette: "notes" })} title="Cranoly vault">
+            <span>Cranoly</span>
             <ChevronsUpDown size={14} />
           </button>
           <Link href="/settings" className="icon-btn" aria-label="Settings" title="Settings">

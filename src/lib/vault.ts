@@ -43,9 +43,10 @@ export interface VaultState {
   workspace: Workspace;
 }
 
-export const STORAGE_KEY = "green-graphite-vault";
+export const STORAGE_KEY = "cranoly-vault";
 /** Keys written by earlier builds; read once so nobody loses notes. */
-const OLDER_KEY = "kurzbite-vault-v2";
+// Earlier names of the app, newest first. Their vaults move to STORAGE_KEY on first load.
+const OLDER_KEYS = ["green-graphite-vault", "kurzbite-vault-v2"];
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: "paper",
@@ -173,11 +174,11 @@ export function loadState(): VaultState {
     saveState(state); // persist any clean-up done by normalize()
     return state;
   }
-  const older = safeParse<Partial<VaultState>>(localStorage.getItem(OLDER_KEY));
-  if (older) {
+  for (const key of OLDER_KEYS) {
+    const older = safeParse<Partial<VaultState>>(localStorage.getItem(key));
+    if (!older) continue;
     const state = normalize(older);
-    saveState(state);
-    localStorage.removeItem(OLDER_KEY);
+    if (saveState(state)) localStorage.removeItem(key);
     return state;
   }
   const state = migrateLegacy() ?? emptyState();

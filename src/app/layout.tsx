@@ -10,8 +10,8 @@ const ui = Instrument_Sans({ subsets: ["latin", "latin-ext"], variable: "--font-
 const mono = Geist_Mono({ subsets: ["latin", "latin-ext"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  title: "Green Graphite",
-  applicationName: "Green Graphite",
+  title: "Cranoly",
+  applicationName: "Cranoly",
   description: "A linked-notes vault for language learning, with flashcards written right inside your notes.",
   appleWebApp: { capable: true, title: "Graphite", statusBarStyle: "black-translucent" },
   formatDetection: { telephone: false },
@@ -29,7 +29,7 @@ export const viewport: Viewport = {
 };
 
 // Applies the saved theme before first paint so the page never flashes the wrong one.
-const THEME_SCRIPT = `try{var s=JSON.parse(localStorage.getItem("green-graphite-vault")||"{}").settings||{};var t=s.theme||"paper";if(t==="system")t=matchMedia("(prefers-color-scheme: dark)").matches?"graphite":"paper";document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="paper"}`;
+const THEME_SCRIPT = `try{var s=JSON.parse(localStorage.getItem("cranoly-vault")||localStorage.getItem("green-graphite-vault")||"{}").settings||{};var t=s.theme||"paper";if(t==="system")t=matchMedia("(prefers-color-scheme: dark)").matches?"graphite":"paper";document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="paper"}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

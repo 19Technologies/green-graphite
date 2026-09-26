@@ -396,7 +396,7 @@ export const vault = {
     try {
       const parsed = JSON.parse(text);
       if (!parsed || typeof parsed !== "object" || typeof parsed.notes !== "object") {
-        return "That file isn't a Green Graphite vault export.";
+        return "That file isn't a Cranoly vault export.";
       }
       const before = state;
       set(() => normalize(parsed));

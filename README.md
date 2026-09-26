@@ -1,4 +1,4 @@
-# Green Graphite
+# Cranoly
 
 A linked-notes vault for learning languages, in the style of Obsidian. You write flashcards directly inside your notes. It runs in the browser on desktop, and installs on phones as an app that works offline.
 
@@ -15,7 +15,7 @@ A linked-notes vault for learning languages, in the style of Obsidian. You write
 
 ## On your phone
 
-Green Graphite follows the Obsidian mobile app's layout:
+Cranoly follows the Obsidian mobile app's layout:
 
 - Swipe right anywhere on a note to open the file explorer. Swipe left to open links, cards and outline. The drawers follow your finger.
 - The bottom bar has back, forward, **+** (new note), a tab switcher, and a menu with graph, flashcards, daily note, search, commands and settings.
